@@ -1,13 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useCounterStore } from "@/lib/providers/CounterProvider";
 import Image from "next/image";
 import { getQueryClient } from "@/lib/get-query-client";
 import { pokemonOptions } from "@/lib/queryOptions/sampleQueryOption";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { PokemonInfo } from "../sample/pokemon-info";
+import { useCounterStore } from "@/lib/providers/counter-provider";
 
 export default function HomePage() {
   const { count, incrementCount, decrementCount } = useCounterStore(
