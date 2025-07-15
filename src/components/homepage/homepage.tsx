@@ -6,8 +6,8 @@ import Image from "next/image";
 import { getQueryClient } from "@/lib/get-query-client";
 import { pokemonOptions } from "@/lib/queryOptions/sampleQueryOption";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { PokemonInfo } from "../sample/PokemonInfo";
 import { Suspense } from "react";
+import { PokemonInfo } from "../sample/pokemon-info";
 
 export default function HomePage() {
   const { count, incrementCount, decrementCount } = useCounterStore(
