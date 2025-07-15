@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { CounterStoreProvider } from "@/lib/providers/counterProvider";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -31,7 +32,7 @@ export default function RootLayout({
         className={`${geist.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning={true}
       >
-        {children}
+        <CounterStoreProvider>{children}</CounterStoreProvider>
       </body>
     </html>
   );
