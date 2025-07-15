@@ -1,13 +1,22 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { useCounterStore } from "@/lib/providers/CounterProvider";
 import Image from "next/image";
-import { useCounterStore } from "@/lib/providers/counterProvider";
+import { getQueryClient } from "@/lib/get-query-client";
+import { pokemonOptions } from "@/lib/queryOptions/sampleQueryOption";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { PokemonInfo } from "../sample/PokemonInfo";
+import { Suspense } from "react";
 
 export default function HomePage() {
   const { count, incrementCount, decrementCount } = useCounterStore(
     (state) => state,
   );
+
+  const queryClient = getQueryClient();
+  void queryClient.prefetchQuery(pokemonOptions);
+
   return (
     <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
       <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
@@ -28,6 +37,16 @@ export default function HomePage() {
           <Button onClick={incrementCount}>+</Button>
           <Button onClick={decrementCount}>-</Button>
         </div>
+
+        <h1>Pokemon Info</h1>
+
+        <HydrationBoundary state={dehydrate(queryClient)}>
+          <PokemonInfo />
+        </HydrationBoundary>
+
+        <Suspense fallback={<div>Loading Pokemon...</div>}>
+          <PokemonInfo />
+        </Suspense>
       </main>
       <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
         <a
