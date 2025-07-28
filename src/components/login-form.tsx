@@ -1,69 +1,145 @@
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+"use client";
+
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useMutation } from "@tanstack/react-query";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+  ILoginResponse,
+  loginOptions,
+} from "@/lib/queryOptions/login-query-option";
+import { useRouter } from "next/navigation";
+import { getCookie, setCookie } from "cookies-next/client";
+import { ACCESS_TOKEN_KEY } from "@/lib/constant";
+import { IconInnerShadowBottomRight } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
+import { jwtDecode } from "jwt-decode";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const router = useRouter();
+
+  const [clickButton, setClickButton] = useState(false);
+  const [disableButton, setDisableButton] = useState(false);
+
+  useEffect(() => {
+    // Reset the button state when the component mounts
+    setClickButton(true);
+    setDisableButton(true);
+
+    const token = getCookie(ACCESS_TOKEN_KEY) as string | null;
+    if (!token) {
+      setClickButton(false);
+      setDisableButton(false);
+      return;
+    }
+
+    const decoded = jwtDecode(token);
+    const currentTime = Date.now() / 1000; // Convert to seconds
+
+    if (token && decoded.exp && decoded.exp > currentTime) {
+      router.push("/dashboard");
+    }
+  }, [router]);
+
+  const handleClick = () => {
+    setClickButton(true);
+  };
+
+  const loginMutation = useMutation({
+    mutationKey: ["login"],
+    mutationFn: async ({
+      phoneNumber,
+      password,
+    }: {
+      phoneNumber: string;
+      password: string;
+    }) => {
+      setDisableButton(true);
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth/login` || "/api/login",
+        {
+          method: "POST" as const,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phoneNumber, password }),
+        },
+      );
+      if (!response.ok) throw new Error("Login failed");
+      return response.json();
+    },
+    onSuccess: (data: ILoginResponse) => {
+      setCookie(ACCESS_TOKEN_KEY, data.data.accessToken);
+      localStorage.setItem("accessToken", data.data.accessToken);
+      // navigate to the home page or dashboard
+      router.push("/dashboard");
+    },
+    onError: (error) => {
+      console.error("Login failed:", error);
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const phoneNumber = formData.get("phoneNumber");
+    const password = formData.get("password");
+
+    if (typeof phoneNumber === "string" && typeof password === "string") {
+      loginMutation.mutate({ phoneNumber, password });
+    } else {
+      console.error("Invalid form data");
+    }
+  };
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
+      <IconInnerShadowBottomRight className="animate-spin h-8 w-8 text-blue-500" />
+      <div>
+        <div className="flex justify-center items-center">
+          <div className="flex flex-row gap-2">
+            <div className="w-4 h-4 rounded-full bg-blue-700 animate-bounce"></div>
+            <div className="w-4 h-4 rounded-full bg-blue-700 animate-bounce [animation-delay:-.3s]"></div>
+            <div className="w-4 h-4 rounded-full bg-blue-700 animate-bounce [animation-delay:-.5s]"></div>
+          </div>
+        </div>
+      </div>
+      <div className="bg-white rounded-xl p-6 shadow-lg space-y-4">
+        <div className="flex items-center space-x-4">
+          <div className="w-12 h-12 rounded-full animate-shimmer"></div>
+          <div className="space-y-2 flex-1">
+            <div className="h-4 w-1/4 animate-shimmer rounded"></div>
+            <div className="h-3 w-1/3 animate-shimmer rounded"></div>
+          </div>
+        </div>
+        <div className="space-y-3">
+          <div className="h-4 w-full animate-shimmer rounded"></div>
+          <div className="h-4 w-full animate-shimmer rounded"></div>
+          <div className="h-4 w-3/4 animate-shimmer rounded"></div>
+        </div>
+      </div>
+
       <Card>
-        <CardHeader className="text-center">
-          <CardTitle className="text-xl">Welcome back</CardTitle>
-          <CardDescription>
-            Login with your Apple or Google account
-          </CardDescription>
-        </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={handleSubmit}>
             <div className="grid gap-6">
-              <div className="flex flex-col gap-4">
-                <Button variant="outline" className="w-full">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path
-                      d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"
-                      fill="currentColor"
-                    />
-                  </svg>
-                  Login with Apple
-                </Button>
-                <Button variant="outline" className="w-full">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path
-                      d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                  Login with Google
-                </Button>
-              </div>
-              <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-                <span className="bg-card text-muted-foreground relative z-10 px-2">
-                  Or continue with
-                </span>
-              </div>
               <div className="grid gap-6">
                 <div className="grid gap-3">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="phoneNumber">Số điện thoại</Label>
                   <Input
-                    id="email"
-                    type="email"
-                    placeholder="m@example.com"
+                    id="phoneNumber"
+                    name="phoneNumber"
+                    type="string"
+                    placeholder="09612345678"
                     required
                   />
                 </div>
                 <div className="grid gap-3">
                   <div className="flex items-center">
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password">Mật khẩu</Label>
                     <a
                       href="#"
                       className="ml-auto text-sm underline-offset-4 hover:underline"
@@ -71,10 +147,24 @@ export function LoginForm({
                       Forgot your password?
                     </a>
                   </div>
-                  <Input id="password" type="password" required />
+
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    required
+                  />
                 </div>
-                <Button type="submit" className="w-full">
-                  Login
+                <Button
+                  type="submit"
+                  onClick={handleClick}
+                  disabled={disableButton}
+                  className="w-full hover:bg-gray-100 text-lg hover:text-gray-700 hover:shadow-lg transition-colors duration-100 ease-in-out"
+                >
+                  Đăng nhập{" "}
+                  {clickButton && (
+                    <IconInnerShadowBottomRight className="animate-spin h-8 w-8 text-blue-500 !size-6" />
+                  )}
                 </Button>
               </div>
               <div className="text-center text-sm">
@@ -92,5 +182,5 @@ export function LoginForm({
         and <a href="#">Privacy Policy</a>.
       </div>
     </div>
-  )
+  );
 }

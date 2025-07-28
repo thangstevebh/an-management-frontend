@@ -4,16 +4,9 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { getQueryClient } from "@/lib/get-query-client";
 import { pokemonOptions } from "@/lib/queryOptions/sampleQueryOption";
-import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { Suspense } from "react";
-import { PokemonInfo } from "../sample/pokemon-info";
 import { useCounterStore } from "@/lib/providers/counter-provider";
 
 export default function HomePage() {
-  const { count, incrementCount, decrementCount } = useCounterStore(
-    (state) => state,
-  );
-
   const queryClient = getQueryClient();
   void queryClient.prefetchQuery(pokemonOptions);
 
@@ -28,25 +21,6 @@ export default function HomePage() {
           height={38}
           priority
         />
-
-        <div
-          style={{ border: "1px solid blue", padding: "10px", margin: "10px" }}
-        >
-          <h3>Counter (Shared Store)</h3>
-          <p>Count: {count}</p>
-          <Button onClick={incrementCount}>+</Button>
-          <Button onClick={decrementCount}>-</Button>
-        </div>
-
-        <h1>Pokemon Info</h1>
-
-        <HydrationBoundary state={dehydrate(queryClient)}>
-          <PokemonInfo />
-        </HydrationBoundary>
-
-        <Suspense fallback={<div>Loading Pokemon...</div>}>
-          <PokemonInfo />
-        </Suspense>
       </main>
       <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
         <a
