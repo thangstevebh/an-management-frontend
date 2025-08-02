@@ -7,10 +7,10 @@ import { Icon, IconPlus } from "@tabler/icons-react";
 
 const buttonLinks = [
   {
-    href: "/pos/add-pos",
-    label: "Thêm máy POS",
+    href: "/account/change-password",
+    label: "Đổi mật khẩu",
     icon: IconPlus,
-    roles: ["admin"],
+    roles: ["admin", "user"],
   },
 ] as {
   href: string;
@@ -23,6 +23,7 @@ const buttonLinks = [
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider
+      className="w-screen"
       style={
         {
           "--sidebar-width": "calc(var(--spacing) * 72)",
@@ -32,7 +33,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     >
       <AppSidebar variant="inset" />
       <SidebarInset>
-        <SiteHeader title="Quản lý máy POS" buttonLinks={buttonLinks} />
+        <SiteHeader title="Quản lý tài khoản" buttonLinks={buttonLinks} />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">

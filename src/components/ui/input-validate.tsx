@@ -43,7 +43,8 @@ const ValidatedInput = ({
       />
       {shouldRenderErrors && (
         <span className="text-sm text-red-500">
-          {fieldErrors && fieldErrors.length > 0 && "*"} {fieldErrors}
+          {fieldErrors && fieldErrors.length > 0 && "*"}{" "}
+          {fieldErrors.join(", ")}
         </span>
       )}
     </div>

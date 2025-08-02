@@ -1,12 +1,10 @@
 "use client";
 
 import { ButtonBack } from "@/components/ui/button-back";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { getCookie } from "cookies-next/client";
 import { ACCESS_TOKEN_KEY } from "@/lib/constant";
 import { createAgentSchema } from "@/lib/validation/create-agent.schema";
@@ -17,8 +15,6 @@ import { toast } from "sonner";
 
 export default function Page() {
   const [wasSubmitted, setWasSubmitted] = useState(false);
-
-  const router = useRouter();
 
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -119,7 +115,9 @@ export default function Page() {
       <ButtonBack />
       <div className="flex flex-col items-center justify-start h-full w-full">
         <h1 className="text-2xl font-bold mb-4">Tạo đại lý</h1>
-        <p className="text-lg mb-6">Admin có thể tạo mới đại lý</p>
+        <p className="text-lg mb-6 text-gray-500">
+          Admin có thể tạo mới đại lý
+        </p>
         <form
           ref={formRef}
           onSubmit={handleSubmit}

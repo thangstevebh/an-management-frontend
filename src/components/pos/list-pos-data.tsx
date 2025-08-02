@@ -43,6 +43,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { useDebounce } from "@/hooks/use-debounce";
+import { Badge } from "../ui/badge";
 
 export enum PosTerminalStatus {
   ACTIVE = "active",
@@ -121,7 +122,7 @@ export const columns: ColumnDef<Pos>[] = [
     cell: ({ row }) => (
       <div className="uppercase">
         <Link
-          href={`/card/${row.getValue("_id")}/`}
+          href={`/pos/${row.getValue("_id")}/`}
           className="text-blue-500 hover:underline"
         >
           {row.getValue("name")}
@@ -190,7 +191,28 @@ export const columns: ColumnDef<Pos>[] = [
     header: () => <div className="text-center max-w-[50px]">Trạng thái</div>,
     cell: ({ row }) => (
       <div className="capitalize text-center max-w-[50px]">
-        {row.getValue("status")}
+        {row.original.status === PosTerminalStatus.ACTIVE ? (
+          <Badge
+            variant="secondary"
+            className="bg-green-500 text-white dark:bg-green-600"
+          >
+            {row.original.status}
+          </Badge>
+        ) : row.original.status === PosTerminalStatus.INACTIVE ? (
+          <Badge
+            variant="secondary"
+            className="bg-gray-500 text-white dark:bg-gray-600"
+          >
+            {row.original.status}
+          </Badge>
+        ) : (
+          <Badge
+            variant="secondary"
+            className="bg-red-500 text-white dark:bg-red-600"
+          >
+            {row.original.status}
+          </Badge>
+        )}
       </div>
     ),
   },
@@ -308,22 +330,25 @@ export function ListPosData() {
       sorting,
     ],
     queryFn: async () => {
-      const response = await useAxios.get(`agent/list-pos`, {
-        params: {
-          order:
-            sorting.length > 0
-              ? sorting[0].id === "name" && sorting[0]?.desc
-                ? "DESC"
-                : "ASC"
-              : "ASC",
-          page: pagination.pageIndex + 1,
-          limit: pagination.pageSize,
-          search: debouncedSearch || undefined, // Use search state for filtering
+      const response = await useAxios.get(
+        `${user?.role === "admin" ? "admin/list-pos-by-admin" : "agent/list-pos"}`,
+        {
+          params: {
+            order:
+              sorting.length > 0
+                ? sorting[0].id === "name" && sorting[0]?.desc
+                  ? "DESC"
+                  : "ASC"
+                : "ASC",
+            page: pagination.pageIndex + 1,
+            limit: pagination.pageSize,
+            search: debouncedSearch || undefined, // Use search state for filtering
+          },
+          headers: {
+            ...(user?.agentId ? { "x-agent": user.agentId } : {}),
+          },
         },
-        headers: {
-          "x-agent": (user?.agentId || "") as string,
-        },
-      });
+      );
       if (response?.status !== 200 && response.data?.code !== 200) {
         toast.error(
           `Failed to fetch cards, ${response.data?.message || "Unknown error"}`,
@@ -332,11 +357,10 @@ export function ListPosData() {
       }
       return response.data;
     },
-    enabled: !!user?.agentId,
+    enabled: user?.role !== "admin" ? !!user?.agentId : true, // Only fetch if user has an agentId
     staleTime: 5000, // Cache data for 5 seconds
   });
 
-  // Memoize the data to prevent unnecessary re-renders of the table
   const data = React.useMemo(
     () => getPosData?.data?.posTerminals || [],
     [getPosData],

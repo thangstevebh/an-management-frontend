@@ -9,6 +9,19 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import React, { useState, useCallback } from "react";
 import { toast } from "sonner";
+import LoadingThreeDot from "../ui/loading-three-dot";
+import { fullIso8601Regex } from "@/lib/constant";
+import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
 
 // Type for edit values - only string inputs for form fields
 type EditableFields = Pick<
@@ -44,11 +57,11 @@ export default function RenderCard({
   const [editValues, setEditValues] = useState<EditValues>({});
 
   const updateCardMutation = useMutation({
+    mutationKey: ["update-card", id],
     mutationFn: async (updateData: Partial<CardData>) => {
-      const response = await useAxios.put(
-        `/card/update-card`,
+      const response = await useAxios.patch(
+        `/card/update-card/${id}`,
         {
-          cardId: id,
           ...updateData,
         },
         {
@@ -122,7 +135,19 @@ export default function RenderCard({
 
   const handleInputChange = useCallback(
     (field: keyof EditableFields, value: string) => {
-      setEditValues((prev) => ({ ...prev, [field]: value }));
+      // Update the editValues state for the specific field
+      if (value === undefined || value === null) {
+        value = "";
+      }
+
+      if (typeof value !== "string") {
+        value = String(value).trim();
+      }
+
+      setEditValues((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
     },
     [],
   );
@@ -137,18 +162,20 @@ export default function RenderCard({
     if (!cardData) return null;
 
     const isEditing = editingField === field;
-    const currentValue = String(cardData[field] || "");
+    const currentValue = String(
+      typeof cardData[field] === "number" && cardData[field] === 0
+        ? "0"
+        : cardData[field] || "",
+    );
     const editValue = editValues[field] || "";
 
     return (
       <div className="flex-1">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          {label}
-        </label>
+        <Label className="block py-2">{label}</Label>
         {isEditing ? (
           <div className="flex gap-2 items-start">
             {type === "textarea" ? (
-              <textarea
+              <Textarea
                 value={editValue}
                 onChange={(e) => handleInputChange(field, e.target.value)}
                 onKeyDown={(e) => handleKeyPress(e, field)}
@@ -160,64 +187,90 @@ export default function RenderCard({
                 disabled={isDisable}
               />
             ) : type === "select" && options ? (
-              <select
-                value={editValue}
-                onChange={(e) => handleInputChange(field, e.target.value)}
-                onKeyDown={(e) => handleKeyPress(e, field)}
-                className={cn(
-                  "flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent",
-                )}
-                autoFocus={!isDisable}
-                disabled={isDisable}
+              <Select
+                value={editValue} // Current value
+                onValueChange={(newValue) => handleInputChange(field, newValue)}
+                disabled={isDisable} // Disable state
               >
-                {options.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger
+                  className={cn(
+                    "flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+                  )}
+                >
+                  <SelectValue placeholder="Select an option" /> {currentValue}
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {options.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             ) : (
-              <input
-                type={type === "date" ? "date" : "text"}
-                value={type === "date" ? editValue.split("T")[0] : editValue}
-                onChange={(e) => handleInputChange(field, e.target.value)}
-                onKeyDown={(e) => handleKeyPress(e, field)}
-                className={cn(
-                  "flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+              <>
+                {type === "date" ? (
+                  <Input
+                    type="date"
+                    value={editValue}
+                    onChange={(e) => handleInputChange(field, e.target.value)}
+                    onKeyDown={(e) => handleKeyPress(e, field)}
+                    className={cn(
+                      "flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+                    )}
+                    autoFocus={!isDisable}
+                    disabled={isDisable}
+                  />
+                ) : (
+                  <Input
+                    type="text"
+                    value={String(editValue ?? "")}
+                    onChange={(e) => handleInputChange(field, e.target.value)}
+                    onKeyDown={(e) => handleKeyPress(e, field)}
+                    className={cn(
+                      "flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+                    )}
+                    autoFocus={!isDisable}
+                    disabled={isDisable}
+                  />
                 )}
-                autoFocus={!isDisable}
-                disabled={isDisable}
-              />
+              </>
             )}
             {isEditing && !isDisable && (
               <div className="flex gap-2 justify-between">
-                <button
+                <Button
                   onClick={() => handleSave(field)}
                   disabled={updateCardMutation.isPending}
                   className="px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {updateCardMutation.isPending ? "..." : "Save"}
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handleCancel}
                   disabled={updateCardMutation.isPending}
                   className="px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 disabled:opacity-50"
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             )}
           </div>
         ) : (
           <div
-            onClick={() => handleFieldClick(field)}
+            onClick={() => {
+              if (isDisable) return;
+              handleFieldClick(field);
+            }}
             className="p-2 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-colors min-h-[2.5rem] flex items-center"
           >
-            {currentValue ? (
+            {currentValue ||
+            (typeof currentValue === "number" && currentValue === 0) ? (
               type === "date" ? (
                 getFieldValue(currentValue)
               ) : (
-                currentValue
+                getFieldValue(currentValue)
               )
             ) : (
               <span className="text-gray-400">{currentValue}</span>
@@ -237,7 +290,9 @@ export default function RenderCard({
     // Convert date values to properly formatted local string
     if (
       value instanceof Date ||
-      (typeof value === "string" && value.includes("T"))
+      (typeof value === "string" &&
+        !isNaN(Date.parse(value)) &&
+        fullIso8601Regex.test(value))
     ) {
       const date = value instanceof Date ? value : new Date(value);
       const year = date.getFullYear();
@@ -251,9 +306,9 @@ export default function RenderCard({
 
   return (
     <div className="flex flex-col gap-2 bg-white p-4 rounded-lg shadow-sm border flex-1">
-      <h2 className="text-lg font-semibold mb-1">Card Information</h2>
+      <h2 className="text-lg font-semibold mb-1">Thông tin thẻ</h2>
       {isLoading ? (
-        <div className="text-center text-gray-500">Loading...</div>
+        <LoadingThreeDot />
       ) : error ? (
         <div className="text-red-500">
           Error: {error.message || "Failed to load card detail"}
@@ -262,16 +317,16 @@ export default function RenderCard({
         <div className="text-gray-500">No card detail found</div>
       ) : (
         <>
-          {renderEditableField("name", "Name", "input", true)}
-          {renderEditableField("bankCode", "Bank Code")}
-          {renderEditableField("lastNumber", "Last Number", "input")}
+          {renderEditableField("name", "Tên thẻ", "input")}
+          {renderEditableField("bankCode", "Mã ngân hàng")}
+          {renderEditableField("lastNumber", "4 số cuối", "input")}
           {renderEditableField(
             "defaultFeePercent",
-            "Default Fee Percent",
+            "Phí mặc định (%)",
             "input",
           )}
-          {renderEditableField("feeBack", "Fee Back", "input")}
-          {renderEditableField("maturityDate", "Maturity Date", "date")}
+          {renderEditableField("feeBack", "Phí hoàn (%)", "input")}
+          {renderEditableField("maturityDate", "Ngày đáo", "date")}
           {renderEditableField("note", "Note", "textarea")}
         </>
       )}

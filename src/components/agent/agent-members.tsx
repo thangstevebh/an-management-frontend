@@ -36,55 +36,64 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DataTablePagination } from "../ui/pagination-table";
+import useAxios from "@/lib/axios/axios.config";
+import { useDebounce } from "@/hooks/use-debounce";
 import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@/hooks/use-user";
-import { useEffect } from "react";
-import useAxios from "@/lib/axios/axios.config";
-import { toast } from "sonner";
 import Link from "next/link";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
-import { IPagemeta } from "@/lib/constant";
-import { useDebounce } from "@/hooks/use-debounce";
-import LoadingThreeDot from "../ui/loading-three-dot";
+import { toGMT7 } from "@/lib/utils";
+import { Badge } from "../ui/badge";
 
-export type Card = {
+interface AgentMember {
   _id: string;
-  bankCode: string;
-  defaultFeePercent: number;
-  feeBack: number;
+  agentId: string;
+  userId: string;
+  agentRole: string;
+  user: {
+    _id: string;
+    username: string;
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+    role: string;
+  };
   isActive: boolean;
-  lastNumber: string;
-  maturityDate: Date;
-  name: string;
-  note: string;
-};
+  isDeleted: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt: Date | null;
+}
 
-export function ListCardsData() {
+export function AgentMembersTable() {
+  const { user } = useUser();
   const [pagination, setPagination] = React.useState({
     pageIndex: 0, // TanStack Table uses 0-based pageIndex
     pageSize: 10, // Initial page size
   });
-  const [sorting, setSorting] = React.useState<SortingState>([
-    { id: "name", desc: false },
-  ]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    [],
-  );
   const [searchInput, setSearchInput] = React.useState("");
   const debouncedSearch = useDebounce(searchInput, 500); // Debounced search value (500ms delay)
 
-  const { user } = useUser();
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    [],
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({
+      _id: false,
+    });
+  const [rowSelection, setRowSelection] = React.useState({});
 
-  const { data: getCardsData, isLoading } = useQuery({
+  const { data: agentMembers, isLoading } = useQuery({
     queryKey: [
-      "get-list-cards",
+      "get-agent-members",
+      user?.agentId,
       pagination.pageIndex,
       pagination.pageSize,
       debouncedSearch,
       sorting,
     ],
     queryFn: async () => {
-      const response = await useAxios.get(`card/list-cards`, {
+      const response = await useAxios.get(`/agent/list-agent-members`, {
         params: {
           order:
             sorting.length > 0
@@ -92,52 +101,35 @@ export function ListCardsData() {
                 ? "DESC"
                 : "ASC"
               : "ASC",
-          isActive: true,
           page: pagination.pageIndex + 1,
           limit: pagination.pageSize,
-          search: debouncedSearch || undefined, // Use search state for filtering
+          search: debouncedSearch || undefined,
         },
         headers: {
-          ...(user?.role !== "admin"
-            ? { "x-agent": (user?.agentId || "") as string }
-            : {}),
+          "x-agent": (user?.agentId || "") as string,
         },
       });
-      if (response?.status !== 200 && response.data?.code !== 200) {
-        toast.error(
-          `Failed to fetch cards, ${response.data?.message || "Unknown error"}`,
-        );
-        return [];
+
+      if (response?.status !== 200 || response.data?.code !== 200) {
+        throw new Error(response.data?.message || "Failed to fetch card");
       }
+
       return response.data;
     },
-    enabled: user?.role !== "admin" ? !!user?.agentId : true,
-    staleTime: 5000, // Cache data for 5 seconds
+
+    enabled: !!user?.agentId,
   });
 
-  // Memoize the data to prevent unnecessary re-renders of the table
-  const data = React.useMemo(
-    () => getCardsData?.data?.cards || [],
-    [getCardsData],
-  );
-
   const pageCount = React.useMemo(
-    () => getCardsData?.data?.pagemeta?.totalPage || -1,
-    [getCardsData],
+    () => agentMembers?.data?.pagemeta?.totalPage || -1,
+    [agentMembers],
   );
-
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({
-      _id: false,
-    });
-  const [rowSelection, setRowSelection] = React.useState({});
-
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(event.target.value);
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   };
 
-  const columns: ColumnDef<Card>[] = [
+  const columns: ColumnDef<AgentMember>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -157,129 +149,152 @@ export function ListCardsData() {
           aria-label="Select row"
         />
       ),
+      enableSorting: false,
+      enableHiding: false,
     },
     {
       accessorKey: "_id",
       header: "Id",
       cell: ({ row }) => <div className="">{row.getValue("_id")}</div>,
-      enableHiding: false,
+      enableHiding: true,
     },
     {
-      accessorKey: "name",
+      id: "name",
+      accessorKey: "user.username",
+      accessorFn: (row) => row.user.username,
+
       header: ({ column }) => {
         return (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Name
+            username
+            <ArrowUpDown />
+          </Button>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="text-center max-w-[100px]">
+          {row.original.user.username}
+        </div>
+      ),
+      enableSorting: true,
+    },
+    {
+      id: "fullName",
+      accessorFn: (row) => `${row.user.firstName} ${row.user.lastName}`,
+
+      header: ({ column }) => {
+        return <div className="text-center max-w-[100px]">Tên đầy đủ</div>;
+      },
+      cell: ({ row }) => (
+        <div className="uppercase">
+          <div className="capitalize text-center max-w-[100px]">
+            {row.original.user.firstName} {row.original.user.lastName}
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: "phone_number",
+      accessorFn: (row) => row.user.phoneNumber,
+
+      header: ({ column }) => {
+        return <div className="text-center max-w-[100px]">Phone Number</div>;
+      },
+      cell: ({ row }) => (
+        <div className="uppercase">
+          <div className="capitalize text-center max-w-[100px]">
+            {row.original.user.phoneNumber}
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: "Role",
+      accessorFn: (row) => row.user.role,
+
+      header: ({ column }) => {
+        return <div className="text-center max-w-[100px]">Role</div>;
+      },
+      cell: ({ row }) => (
+        <div className="uppercase">
+          <div className="capitalize text-center max-w-[100px]">
+            {row.original.agentRole && row.original.agentRole !== "owner" ? (
+              <Badge
+                variant="secondary"
+                className="bg-emerald-500 text-white dark:bg-emerald-600"
+              >
+                Nhân viên
+              </Badge>
+            ) : (
+              <Badge
+                variant="secondary"
+                className="bg-blue-500 text-white dark:bg-blue-600"
+              >
+                Chủ sở hữu
+              </Badge>
+            )}
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: "status",
+      accessorFn: (row) => row.isActive,
+
+      header: ({ column }) => {
+        return <div className="text-center max-w-[100px]">Status</div>;
+      },
+      cell: ({ row }) => (
+        <div className="uppercase">
+          <div className="capitalize text-center max-w-[100px]">
+            {row.original.isActive ? (
+              <Badge
+                variant="secondary"
+                className="bg-green-500 text-white dark:bg-green-600"
+              >
+                Active
+              </Badge>
+            ) : (
+              <Badge
+                variant="secondary"
+                className="bg-red-500 text-white dark:bg-red-600"
+              >
+                Inactive
+              </Badge>
+            )}
+          </div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "createdAt",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Created At
             <ArrowUpDown />
           </Button>
         );
       },
       cell: ({ row }) => (
         <div className="uppercase">
-          {user?.role === "admin" ? (
-            <span className="">{row.getValue("name")}</span>
-          ) : (
-            <Link
-              href={`/card/${row.getValue("_id")}/`}
-              className="text-blue-500 hover:underline"
-            >
-              {row.getValue("name")}
-            </Link>
-          )}
+          {toGMT7(row.getValue("createdAt"), "DD-MM-YYYY hh:mm:ss")}
         </div>
       ),
       enableSorting: true,
     },
     {
-      accessorKey: "bankCode",
-      header: () => <div className="text-center max-w-[100px]">Bank Code</div>,
-      cell: ({ row }) => (
-        <div className="capitalize text-center max-w-[100px]">
-          {row.getValue("bankCode")}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "lastNumber",
-      header: () => <div className="text-center max-w-[50px]">4 Số cuối</div>,
-      cell: ({ row }) => (
-        <div className="capitalize text-center max-w-[50px]">
-          {row.getValue("lastNumber")}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "defaultFeePercent",
-      header: () => (
-        <div className="text-center max-w-[50px]">Phí mặc định</div>
-      ),
-      cell: ({ row }) => {
-        const amount = parseFloat(row.getValue("defaultFeePercent"));
-
-        return (
-          <div className="max-w-[50px] text-center font-medium">{amount}</div>
-        );
-      },
-    },
-    {
-      accessorKey: "feeBack",
-      header: () => <div className="text-center max-w-[50px]">Phí Hoàn</div>,
-      cell: ({ row }) => {
-        const amount = parseFloat(row.getValue("feeBack"));
-
-        return (
-          <div className="max-w-[50px] text-center font-medium">{amount}</div>
-        );
-      },
-    },
-    {
-      accessorKey: "maturityDate",
-      header: () => <div className="text-center">Ngày đáo</div>,
-      cell: ({ row }) => {
-        const maturity = row.getValue("maturityDate");
-
-        const maturityDate = maturity ? new Date(maturity as string) : null;
-        const formattedDate = maturityDate
-          ? `${maturityDate.getDate().toString().padStart(2, "0")}/${(maturityDate.getMonth() + 1).toString().padStart(2, "0")}/${maturityDate.getFullYear()}`
-          : "N/A";
-
-        return <div className="capitalize text-center">{formattedDate}</div>;
-      },
-    },
-    {
-      accessorKey: "note",
-      header: () => <div className="text-center max-w-[200px]">Note</div>,
-      cell: ({ row }) => (
-        <div className="max-w-[200px] truncate text-center">
-          {row.getValue("note") ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="cursor-pointer">
-                  {row.getValue("note") || "No note"}
-                </span>
-              </TooltipTrigger>
-              <TooltipContent
-                className="max-w-[300px] text-sm text-wrap break-words"
-                side="top"
-                sideOffset={5}
-                align="start"
-              >
-                <span className="">{row.getValue("note")}</span>
-              </TooltipContent>
-            </Tooltip>
-          ) : (
-            <span className="text-gray-500">No note</span>
-          )}
-        </div>
-      ),
-    },
-    {
       id: "actions",
       enableHiding: false,
       cell: ({ row }) => {
+        const payment = row.original;
+
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -290,7 +305,11 @@ export function ListCardsData() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem>Copy payment ID</DropdownMenuItem>
+              <DropdownMenuItem
+              // onClick={() => navigator.clipboard.writeText()}
+              >
+                Copy payment ID
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem>View customer</DropdownMenuItem>
               <DropdownMenuItem>View payment details</DropdownMenuItem>
@@ -302,7 +321,7 @@ export function ListCardsData() {
   ];
 
   const table = useReactTable({
-    data: data,
+    data: agentMembers?.data?.agentMembers || [],
     columns,
 
     // Manual pagination settings
@@ -331,9 +350,9 @@ export function ListCardsData() {
     <div className="w-full">
       <div className="flex items-center py-4">
         <Input
+          placeholder="Tìm kiếm thành viên..."
           value={searchInput}
           onChange={handleSearch}
-          placeholder="Tìm kiếm theo tên..."
           className="max-w-sm"
         />
         <DropdownMenu>
@@ -364,13 +383,13 @@ export function ListCardsData() {
         </DropdownMenu>
       </div>
       <div className="overflow-hidden rounded-md border">
-        <Table className="w-full">
-          <TableHeader className="bg-gray-100 w-auto">
+        <Table>
+          <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow className="max-w-[100px]" key={headerGroup.id}>
+              <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead className="max-w-[100px]" key={header.id}>
+                    <TableHead key={header.id}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -391,10 +410,7 @@ export function ListCardsData() {
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className="w-auto break-words max-w-[150px]"
-                    >
+                    <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),
@@ -409,7 +425,7 @@ export function ListCardsData() {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  {isLoading ? <LoadingThreeDot /> : <span>No results.</span>}
+                  No results.
                 </TableCell>
               </TableRow>
             )}

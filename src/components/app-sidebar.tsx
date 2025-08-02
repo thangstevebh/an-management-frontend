@@ -19,6 +19,7 @@ import {
   IconLibrary,
   IconInnerShadowBottomRightFilled,
   IconFileInvoice,
+  IconSend,
 } from "@tabler/icons-react";
 
 import { NavDocuments } from "@/components/nav-documents";
@@ -38,7 +39,7 @@ import {
 const data = {
   navMain: [
     {
-      title: "Dashboard",
+      title: "Trang thống kê",
       url: "/dashboard",
       icon: IconDashboard,
     },
@@ -48,7 +49,7 @@ const data = {
       icon: IconHome,
     },
     {
-      title: "Bill",
+      title: "Hoá đơn và thanh toán",
       url: "/bill",
       icon: IconFileInvoice,
     },
@@ -56,6 +57,11 @@ const data = {
       title: "Thẻ tín dụng",
       url: "/card",
       icon: IconCards,
+    },
+    {
+      title: "Lên Lệnh",
+      url: "/command",
+      icon: IconSend,
     },
     {
       title: "Máy POS",

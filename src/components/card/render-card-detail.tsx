@@ -3,9 +3,23 @@
 import { useUser } from "@/hooks/use-user";
 import useAxios from "@/lib/axios/axios.config";
 import { cn } from "@/lib/utils";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useState, useCallback } from "react";
 import { toast } from "sonner";
+import LoadingThreeDot from "../ui/loading-three-dot";
+import { fullIso8601Regex } from "@/lib/constant";
+import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
+import { Textarea } from "../ui/textarea";
 
 interface CardDetailData {
   _id: string;
@@ -51,17 +65,18 @@ export default function RenderCardDetail({
   error: any;
 }) {
   const { user } = useUser();
+  const queryClient = useQueryClient();
   const [editingField, setEditingField] = useState<keyof EditableFields | null>(
     null,
   );
   const [editValues, setEditValues] = useState<EditValues>({});
 
-  const updateCardMutation = useMutation({
+  const updateCardDetailMutation = useMutation({
+    mutationKey: ["update-card", cardDetailData?._id, cardDetailData?.cardId],
     mutationFn: async (updateData: Partial<CardDetailData>) => {
-      const response = await useAxios.put(
-        `/card/update-card`,
+      const response = await useAxios.patch(
+        `/card/update-card-detail/${cardDetailData?.cardId}/${cardDetailData?._id}`,
         {
-          cardId: cardDetailData?.cardId,
           ...updateData,
         },
         {
@@ -79,6 +94,9 @@ export default function RenderCardDetail({
     },
     onSuccess: () => {
       toast.success("Card updated successfully");
+      queryClient.invalidateQueries({
+        queryKey: ["get-card-by-id", cardDetailData?.cardId],
+      });
       setEditingField(null);
       setEditValues({});
     },
@@ -124,9 +142,9 @@ export default function RenderCardDetail({
         updateValue = isNaN(numericValue) ? 0 : numericValue;
       }
 
-      updateCardMutation.mutate({ [field]: updateValue });
+      updateCardDetailMutation.mutate({ [field]: updateValue });
     },
-    [editValues, cardDetailData, updateCardMutation],
+    [editValues, cardDetailData, updateCardDetailMutation],
   );
 
   const getFieldValue = (value: any): string => {
@@ -138,7 +156,10 @@ export default function RenderCardDetail({
     // Convert date values to properly formatted local string
     if (
       value instanceof Date ||
-      (typeof value === "string" && value.includes("T"))
+      (typeof value === "string" &&
+        value.includes("T") &&
+        !isNaN(Date.parse(value)) &&
+        fullIso8601Regex.test(value))
     ) {
       const date = value instanceof Date ? value : new Date(value);
       const year = date.getFullYear();
@@ -184,18 +205,20 @@ export default function RenderCardDetail({
     if (!cardDetailData) return null;
 
     const isEditing = editingField === field;
-    const currentValue = String(cardDetailData[field] || "");
+    const currentValue = String(
+      typeof cardDetailData[field] === "number" && cardDetailData[field] === 0
+        ? "0"
+        : cardDetailData[field] || "",
+    );
     const editValue = editValues[field] || "";
 
     return (
       <div className="flex-1">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          {label}
-        </label>
+        <Label className="block py-2">{label}</Label>
         {isEditing ? (
           <div className="flex gap-2 items-start">
             {type === "textarea" ? (
-              <textarea
+              <Textarea
                 value={editValue}
                 onChange={(e) => handleInputChange(field, e.target.value)}
                 onKeyDown={(e) => handleKeyPress(e, field)}
@@ -207,51 +230,73 @@ export default function RenderCardDetail({
                 disabled={isDisable}
               />
             ) : type === "select" && options ? (
-              <select
-                value={editValue}
-                onChange={(e) => handleInputChange(field, e.target.value)}
-                onKeyDown={(e) => handleKeyPress(e, field)}
-                className={cn(
-                  "flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent",
-                )}
-                autoFocus={!isDisable}
-                disabled={isDisable}
+              <Select
+                value={editValue} // Current value
+                onValueChange={(newValue) => handleInputChange(field, newValue)}
+                disabled={isDisable} // Disable state
               >
-                {options.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger
+                  className={cn(
+                    "flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+                  )}
+                >
+                  <SelectValue placeholder="Select an option" /> {currentValue}
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {options.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             ) : (
-              <input
-                type={type === "date" ? "date" : "text"}
-                value={type === "date" ? getFieldValue(field) : editValue}
-                onChange={(e) => handleInputChange(field, e.target.value)}
-                onKeyDown={(e) => handleKeyPress(e, field)}
-                className={cn(
-                  "flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+              <>
+                {type === "date" ? (
+                  <Input
+                    type="date"
+                    value={editValue}
+                    onChange={(e) => handleInputChange(field, e.target.value)}
+                    onKeyDown={(e) => handleKeyPress(e, field)}
+                    className={cn(
+                      "flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+                    )}
+                    autoFocus={!isDisable}
+                    disabled={isDisable}
+                  />
+                ) : (
+                  <Input
+                    type="text"
+                    value={String(editValue ?? "")}
+                    onChange={(e) => handleInputChange(field, e.target.value)}
+                    onKeyDown={(e) => handleKeyPress(e, field)}
+                    className={cn(
+                      "flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+                    )}
+                    autoFocus={!isDisable}
+                    disabled={isDisable}
+                  />
                 )}
-                autoFocus={!isDisable}
-                disabled={isDisable}
-              />
+              </>
             )}
             {isEditing && !isDisable && (
               <div className="flex gap-2 justify-between">
-                <button
+                <Button
                   onClick={() => handleSave(field)}
-                  disabled={updateCardMutation.isPending}
+                  disabled={updateCardDetailMutation.isPending}
                   className="px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {updateCardMutation.isPending ? "..." : "Save"}
-                </button>
-                <button
+                  {updateCardDetailMutation.isPending ? "..." : "Save"}
+                </Button>
+                <Button
                   onClick={handleCancel}
-                  disabled={updateCardMutation.isPending}
+                  disabled={updateCardDetailMutation.isPending}
                   className="px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 disabled:opacity-50"
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             )}
           </div>
@@ -263,7 +308,8 @@ export default function RenderCardDetail({
             }}
             className="p-2 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-colors min-h-[2.5rem] flex items-center"
           >
-            {currentValue ? (
+            {currentValue ||
+            (typeof currentValue === "number" && currentValue === 0) ? (
               type === "date" ? (
                 getFieldValue(currentValue)
               ) : (
@@ -278,11 +324,74 @@ export default function RenderCardDetail({
     );
   };
 
+  const createNewCardDetailStageMutation = useMutation({
+    mutationKey: ["create-new-card-detail-stage", cardDetailData?.cardId],
+    mutationFn: async () => {
+      const response = await useAxios.post(
+        `/agent/add-card-detail`,
+        {
+          detail: cardDetailData?.detail || "",
+          amount: cardDetailData?.amount || 0,
+          notWithdrawAmount: cardDetailData?.amount || 0,
+          withdrawedAmount: cardDetailData?.withdrawedAmount || 0,
+          negativeRemainingAmount: cardDetailData?.negativeRemainingAmount || 0,
+          feePercent: cardDetailData?.feePercent || 0,
+        },
+        {
+          params: {
+            cardId: cardDetailData?.cardId,
+          },
+          headers: {
+            "x-agent": (user?.agentId || "") as string,
+          },
+        },
+      );
+
+      if (response?.status !== 200 || response.data?.code !== 200) {
+        throw new Error(
+          response.data?.message || "Failed to create new card detail stage",
+        );
+      }
+
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success("Card updated successfully");
+      queryClient.invalidateQueries({
+        queryKey: ["get-card-by-id", cardDetailData?.cardId],
+      });
+    },
+    onError: (error: any) => {
+      toast.error(
+        `Failed to update card: ${error.response?.data?.message || error.message}`,
+        {
+          description: "Please try again later.",
+        },
+      );
+    },
+  });
+
+  const handleEndCardStage = useCallback(() => {
+    createNewCardDetailStageMutation.mutate();
+  }, [cardDetailData, createNewCardDetailStageMutation]);
+
   return (
     <div className="flex flex-col gap-2 bg-white p-4 rounded-lg shadow-sm border flex-1">
-      <h2 className="text-lg font-semibold mb-1">Card Detail Information</h2>
+      <h2 className="text-lg font-semibold mb-1">Thông tin tiền trong thẻ</h2>
+      <Button
+        className="mb-2"
+        variant="destructive"
+        onClick={() => handleEndCardStage()}
+        disabled={
+          createNewCardDetailStageMutation.isPending ||
+          !cardDetailData?.isCurrent
+        }
+      >
+        <span className="text-sm">Kết thúc giai đoạn thẻ</span>
+      </Button>
+
       {isLoading ? (
-        <div className="text-center text-gray-500">Loading...</div>
+        <LoadingThreeDot />
       ) : error ? (
         <div className="text-red-500">
           Error: {error.message || "Failed to load card detail"}
@@ -291,22 +400,28 @@ export default function RenderCardDetail({
         <div className="text-gray-500">No card detail found</div>
       ) : (
         <>
-          {renderEditableField("amount", "Amount", "input")}
-          {renderEditableField("feePercent", "Fee Percent", "input")}
+          {renderEditableField("amount", "Số tiền", "input")}
+          {renderEditableField("feePercent", "Phí (%)", "input")}
           {renderEditableField(
             "negativeRemainingAmount",
-            "Negative Remaining Amount",
+            "Số tiền âm còn lại",
             "input",
           )}
+          {renderEditableField("withdrawedAmount", "Số tiền đã rút", "input")}
           {renderEditableField(
-            "withdrawedAmount",
-            "Withdrawed Amount",
-            "input",
+            "fromDate",
+            "Ngày bắt đầu giai đoạn thẻ",
+            "date",
+            true,
           )}
-          {renderEditableField("fromDate", "From Date", "date", true)}
-          {renderEditableField("endDate", "End Date", "date", true)}
-          {renderEditableField("detail", "Detail", "textarea")}
-          {renderEditableField("withdrawedDate", "Withdrawed Date", "date")}
+          {/* {renderEditableField("endDate", "End Date", "date", true)} */}
+          {renderEditableField(
+            "withdrawedDate",
+            "Ngày rút tiền gần nhất",
+            "date",
+            true,
+          )}
+          {renderEditableField("detail", "Note", "textarea")}
         </>
       )}
     </div>

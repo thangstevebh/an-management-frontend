@@ -33,14 +33,19 @@ export const AgentDetail = ({ agent }: { agent: IAgent }) => {
       <h1 className="text-2xl font-semibold text-center mb-6">
         Thông tin đại lý
       </h1>
+      <div className="flex flex-col justify-center items-center mb-4">
+        <p className="text-gray-500">Vui lòng chọn đại lý để xem chi tiết.</p>
+      </div>
       <div className="h-full w-full px-4 lg:px-6">
-        <div className="flex flex-row justify-center items-center justify-items-center bg-white p-6 rounded-lg shadow-sm border gap-2">
+        <div className="flex flex-row justify-center items-center justify-items-center text-center bg-white p-6 rounded-lg shadow-sm border gap-2 hover:bg-sidebar-accent hover:shadow-md transition-shadow duration-200 ">
           <div className="w-[200px]">
             <label className="block text-sm font-medium text-gray-700">
               Tên đại lý
             </label>
             <div className="">
-              <span className="text-red-500">{agent?.name}</span>
+              <span className="text-blue-500 text-lg font-bold text-center">
+                {agent?.name}
+              </span>
             </div>
           </div>
 

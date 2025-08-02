@@ -31,7 +31,7 @@ export function SiteHeader({
         <div className="ml-auto flex items-center gap-2">
           {buttonLinks?.map(
             (link) =>
-              link.roles.includes(user?.role) &&
+              link?.roles?.includes(user?.role) &&
               (user?.role === "admin" ||
                 !link?.agentRoles ||
                 link.agentRoles.includes(user?.agentRole)) && (

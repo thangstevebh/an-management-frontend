@@ -113,8 +113,14 @@ export default function Page() {
     <div>
       <ButtonBack />
       <div className="flex flex-col gap-2 max-full mx-auto">
-        <div className="flex justify-center items-center">
-          <h1 className="text-2xl font-semibold">Card Details</h1>
+        <div className="flex flex-col justify-center items-center">
+          <h1 className="text-2xl font-semibold">
+            Thông tin thẻ:{" "}
+            <span className="underline text-blue-600">{cardData?.name}</span>
+          </h1>
+          <p className="text-center mb-4 text-gray-500">
+            Bạn có thể xem chi tiết thẻ, thông tin cộng tác viên liên quan.
+          </p>
         </div>
 
         <div className="flex w-full gap-4 mx-auto">

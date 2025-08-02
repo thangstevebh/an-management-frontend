@@ -1,16 +1,21 @@
 "use client";
 
-import { CollaboratorData } from "@/app/card/[id]/page";
+import { CardData, CollaboratorData } from "@/app/card/[id]/page";
 import { useUser } from "@/hooks/use-user";
 import useAxios from "@/lib/axios/axios.config";
 import { cn } from "@/lib/utils";
-import { useMutation } from "@tanstack/react-query";
-import React, { useState, useCallback } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import React, { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
+import LoadingThreeDot from "../ui/loading-three-dot";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
+import { SelectCollaboratorCombobox } from "./select-card-collaborator";
+import { IconUserCode, IconUserPlus } from "@tabler/icons-react";
+import { useDebounce } from "@/hooks/use-debounce";
+import { useParams } from "next/navigation";
 
-// Type for edit values - only string inputs for form fields
 type EditableFields = Pick<CollaboratorData, "name">;
-type EditValues = Partial<Record<keyof EditableFields, string>>;
 
 export default function RenderCollaborator({
   cardCollaboratorData,
@@ -22,17 +27,51 @@ export default function RenderCollaborator({
   error: any;
 }) {
   const { user } = useUser();
-  const [editingField, setEditingField] = useState<keyof EditableFields | null>(
-    null,
-  );
-  const [editValues, setEditValues] = useState<EditValues>({});
+  const { id } = useParams();
+
+  const [wasSubmitted, setWasSubmitted] = useState(false);
+  const [isNewCollaborator, setIsNewCollaborator] = useState(false);
+  const [newCollaborator, setNewCollaborator] = useState("");
+  const queryClient = useQueryClient();
+
+  const handleCollaboratorSelect = (value: string) => {
+    setNewCollaborator(value);
+    setIsNewCollaborator(false);
+    setWasSubmitted(false);
+  };
+  const debouncedNewCollaborator = useDebounce(newCollaborator, 500);
+
+  const { data: collaborator, isLoading: queryIsLoading } = useQuery({
+    queryKey: ["get-collaborator", user?.agentId, debouncedNewCollaborator],
+    queryFn: async () => {
+      const response = await useAxios.get(`card/list-collaborators`, {
+        params: {
+          name: debouncedNewCollaborator,
+          page: 1,
+          limit: 1,
+        },
+        headers: {
+          "x-agent": (user?.agentId || "") as string,
+        },
+      });
+      if (response?.status !== 200 && response.data?.code !== 200) {
+        toast.error(
+          `Failed to fetch cards, ${response.data?.message || "Unknown error"}`,
+        );
+        return [];
+      }
+      return response.data.data;
+    },
+    enabled: !!user?.agentId && !!debouncedNewCollaborator,
+    staleTime: 5000,
+  });
 
   const updateCardMutation = useMutation({
-    mutationFn: async (updateData: Partial<CollaboratorData>) => {
-      const response = await useAxios.put(
-        `/card/update-card`,
+    mutationKey: ["update-card", id, wasSubmitted],
+    mutationFn: async (updateData: Partial<CardData>) => {
+      const response = await useAxios.patch(
+        `/card/update-card/${id}`,
         {
-          cardId: cardCollaboratorData?._id,
           ...updateData,
         },
         {
@@ -50,8 +89,7 @@ export default function RenderCollaborator({
     },
     onSuccess: () => {
       toast.success("Card updated successfully");
-      setEditingField(null);
-      setEditValues({});
+      queryClient.invalidateQueries({ queryKey: ["get-card-by-id", id] });
     },
     onError: (error: any) => {
       toast.error(
@@ -60,175 +98,196 @@ export default function RenderCollaborator({
     },
   });
 
-  const handleFieldClick = useCallback(
-    (field: keyof EditableFields) => {
-      if (!cardCollaboratorData) return;
+  const createCardCollaboratorMutation = useMutation({
+    mutationKey: [
+      "create-card-collaborator",
+      user?.agentId,
+      debouncedNewCollaborator,
+    ],
+    mutationFn: async ({ name }: { name: string }) => {
+      const response = await useAxios.post(
+        `agent/add-collaborator-card`,
+        {
+          name,
+        },
+        {
+          headers: {
+            "x-agent": (user?.agentId || "") as string,
+          },
+        },
+      );
 
-      setEditingField(field);
-      setEditValues({ [field]: String(cardCollaboratorData[field] || "") });
-    },
-    [cardCollaboratorData],
-  );
-
-  const handleSave = useCallback(
-    (field: keyof EditableFields) => {
-      const value = editValues[field];
-      if (
-        value === undefined ||
-        value === String(cardCollaboratorData?.[field] || "")
-      ) {
-        handleCancel();
+      if (response?.status !== 200 && response.data?.code !== 200) {
+        toast.error("Tạo thẻ cộng tác viên thất bại", {
+          description: "Vui lòng kiểm tra lại thông tin và thử lại.",
+        });
         return;
       }
-
-      // Convert string back to appropriate type if needed
-      const updateValue: any = value.trim();
-
-      updateCardMutation.mutate({ [field]: updateValue });
+      return response.data;
     },
-    [editValues, cardCollaboratorData, updateCardMutation],
-  );
-
-  const handleCancel = useCallback(() => {
-    setEditingField(null);
-    setEditValues({});
-  }, []);
-
-  const handleKeyPress = useCallback(
-    (e: React.KeyboardEvent, field: keyof EditableFields) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        handleSave(field);
-      } else if (e.key === "Escape") {
-        handleCancel();
+    onError: (error) => {
+      toast.error("Tạo cộng tác viên thẻ thất bại", {
+        description: "Vui lòng kiểm tra lại thông tin và thử lại.",
+      });
+      console.error("Error creating card:", error);
+    },
+    onSuccess: (data) => {
+      if (data) {
+        toast.success("Tạo cộng tác viên thẻ thành công");
+        queryClient.invalidateQueries({ queryKey: ["get-collaborator"] });
       }
     },
-    [handleSave, handleCancel],
-  );
-
-  const handleInputChange = useCallback(
-    (field: keyof EditableFields, value: string) => {
-      setEditValues((prev) => ({ ...prev, [field]: value }));
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["get-card-by-id", id] });
     },
-    [],
-  );
+    retry: 1,
+    retryDelay: 1000,
+  });
 
-  const renderEditableField = (
-    field: keyof EditableFields,
-    label: string,
-    type: "input" | "textarea" | "select" | "date" = "input",
-    isDisable?: boolean,
-    options?: string[],
+  useEffect(() => {
+    if (
+      newCollaborator &&
+      isNewCollaborator === false &&
+      collaborator?.collaborators?.length > 0
+    ) {
+      updateCardMutation.mutate({
+        cardCollaboratorId: collaborator?.collaborators[0]._id,
+      });
+      setIsHaveCollaborator(true);
+      setWasSubmitted(true);
+      setNewCollaborator("");
+      setIsNewCollaborator(false);
+    }
+  }, [
+    isNewCollaborator,
+    newCollaborator,
+    debouncedNewCollaborator,
+    collaborator,
+  ]);
+
+  const [isHaveCollaborator, setIsHaveCollaborator] = useState(true);
+
+  useEffect(() => {
+    if (cardCollaboratorData) {
+      setIsHaveCollaborator(true);
+    } else {
+      setIsHaveCollaborator(false);
+    }
+  }, [cardCollaboratorData]);
+
+  const handleEnterNewCollaborator = async (
+    e: React.KeyboardEvent<HTMLInputElement>,
   ) => {
-    if (!cardCollaboratorData) return null;
-
-    const isEditing = editingField === field;
-    const currentValue = String(cardCollaboratorData[field] || "");
-    const editValue = editValues[field] || "";
-
-    return (
-      <div className="flex-1">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          {label}
-        </label>
-        {isEditing ? (
-          <div className="flex gap-2 items-start">
-            {type === "textarea" ? (
-              <textarea
-                value={editValue}
-                onChange={(e) => handleInputChange(field, e.target.value)}
-                onKeyDown={(e) => handleKeyPress(e, field)}
-                className={cn(
-                  "flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical",
-                )}
-                rows={3}
-                autoFocus={!isDisable}
-                disabled={isDisable}
-              />
-            ) : type === "select" && options ? (
-              <select
-                value={editValue}
-                onChange={(e) => handleInputChange(field, e.target.value)}
-                onKeyDown={(e) => handleKeyPress(e, field)}
-                className={cn(
-                  "flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent",
-                )}
-                autoFocus={!isDisable}
-                disabled={isDisable}
-              >
-                {options.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <input
-                type={type === "date" ? "date" : "text"}
-                value={type === "date" ? editValue.split("T")[0] : editValue}
-                onChange={(e) => handleInputChange(field, e.target.value)}
-                onKeyDown={(e) => handleKeyPress(e, field)}
-                className={cn(
-                  "flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent",
-                )}
-                autoFocus={!isDisable}
-                disabled={isDisable}
-              />
-            )}
-            {isEditing && !isDisable && (
-              <div className="flex gap-2 justify-between">
-                <button
-                  onClick={() => handleSave(field)}
-                  disabled={updateCardMutation.isPending}
-                  className="px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {updateCardMutation.isPending ? "..." : "Save"}
-                </button>
-                <button
-                  onClick={handleCancel}
-                  disabled={updateCardMutation.isPending}
-                  className="px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div
-            onClick={() => handleFieldClick(field)}
-            className="p-2 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-colors min-h-[2.5rem] flex items-center"
-          >
-            {currentValue ? (
-              type === "date" ? (
-                new Date(currentValue).toLocaleDateString()
-              ) : (
-                currentValue
-              )
-            ) : (
-              <span className="text-gray-400">{currentValue}</span>
-            )}
-          </div>
-        )}
-      </div>
-    );
+    if (e.key === "Enter" && newCollaborator.trim()) {
+      if (debouncedNewCollaborator) {
+        createCardCollaboratorMutation.mutateAsync({
+          name: debouncedNewCollaborator,
+        });
+      }
+      setWasSubmitted(true);
+      setNewCollaborator(debouncedNewCollaborator);
+      setIsNewCollaborator(false);
+      e.preventDefault();
+    }
   };
 
   return (
     <div className="flex flex-col gap-2 bg-white p-4 rounded-lg shadow-sm border flex-1">
-      <h2 className="text-lg font-semibold mb-1">
-        Card Collaborator Information
-      </h2>
+      <h2 className="text-lg font-semibold mb-1">Cộng tác viên thẻ</h2>
       {isLoading ? (
-        <div className="text-center text-gray-500">Loading...</div>
+        <LoadingThreeDot />
       ) : error ? (
         <div className="text-red-500">
           Error: {error.message || "Failed to load card detail"}
         </div>
       ) : !cardCollaboratorData ? (
-        <div className="text-gray-500">No card detail found</div>
+        <>
+          <div className="flex flex-col items-start justify-baseline gap-2">
+            <div className="flex items-center w-full gap-2">
+              {isNewCollaborator === false ? (
+                <SelectCollaboratorCombobox
+                  onValueChange={handleCollaboratorSelect}
+                />
+              ) : (
+                <Input
+                  className="flex-1"
+                  id="newCollaborator"
+                  name="newCollaborator"
+                  type="string"
+                  placeholder="Nhập tên cộng tác viên mới"
+                  onChange={(e) => {
+                    setNewCollaborator(e.currentTarget.value?.trim());
+                  }}
+                  onKeyDown={handleEnterNewCollaborator}
+                />
+              )}
+              <div
+                onClick={() => setIsNewCollaborator(!isNewCollaborator)}
+                className={cn(
+                  "select-none flex items-center gap-2 h-9 px-4 py-2 has-[>svg]:px-3 rounded-lg bg-zinc-100 text-gray-400 hover:bg-zinc-200 transition-colors cursor-pointer",
+                  isNewCollaborator
+                    ? "bg-blue-100 text-blue-800"
+                    : "bg-zinc-100",
+                )}
+              >
+                <IconUserPlus className="!size-6" size={24} />
+                <span>Tạo mới</span>
+              </div>
+            </div>
+          </div>
+        </>
+      ) : isHaveCollaborator ? (
+        <div className="flex flex-1 justify-between items-center">
+          <span>{cardCollaboratorData.name}</span>
+          <Button
+            variant="outline"
+            className="ml-auto"
+            onClick={() => {
+              setIsHaveCollaborator(false);
+            }}
+          >
+            <IconUserCode className="!size-6" size={24} />
+            Chuyển
+          </Button>
+        </div>
       ) : (
-        <>{renderEditableField("name", "Collaborator Name")}</>
+        !isHaveCollaborator && (
+          <>
+            <div className="flex flex-col items-start justify-baseline gap-2">
+              <div className="flex items-center w-full gap-2">
+                {isNewCollaborator === false ? (
+                  <SelectCollaboratorCombobox
+                    onValueChange={handleCollaboratorSelect}
+                  />
+                ) : (
+                  <Input
+                    className="flex-1"
+                    id="newCollaborator"
+                    name="newCollaborator"
+                    type="string"
+                    placeholder="Nhập tên cộng tác viên mới"
+                    onChange={(e) => {
+                      setNewCollaborator(e.currentTarget.value?.trim());
+                    }}
+                    onKeyDown={handleEnterNewCollaborator}
+                  />
+                )}
+                <div
+                  onClick={() => setIsNewCollaborator(!isNewCollaborator)}
+                  className={cn(
+                    "select-none flex items-center gap-2 h-9 px-4 py-2 has-[>svg]:px-3 rounded-lg bg-zinc-100 text-gray-400 hover:bg-zinc-200 transition-colors cursor-pointer",
+                    isNewCollaborator
+                      ? "bg-blue-100 text-blue-800"
+                      : "bg-zinc-100",
+                  )}
+                >
+                  <IconUserPlus className="!size-6" size={24} />
+                  <span>Tạo mới</span>
+                </div>
+              </div>
+            </div>
+          </>
+        )
       )}
     </div>
   );

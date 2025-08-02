@@ -15,8 +15,8 @@ export const createCardSchema = z.object({
   bankCode: z
     .string()
     .trim()
-    .nonempty("Tên thẻ không được để trống")
-    .min(1, "Mã ngân hàng không được để trống")
+    .nonempty("Mã ngân hàng không được để trống")
+    .min(1, "Mã ngân hàng phải có ít nhất 1 ký tự")
     .max(20, "Mã ngân hàng không được vượt quá 20 ký tự"),
 
   lastNumber: z

@@ -35,6 +35,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ICommonResponse } from "@/lib/constant";
 import useAxios from "@/lib/axios/axios.config";
 import { useEffect, useMemo } from "react";
+import Link from "next/link";
 
 export function NavUser() {
   const { isMobile } = useSidebar();
@@ -111,14 +112,30 @@ export function NavUser() {
               className="border drop-shadow-lg data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarFallback className="rounded-lg bg-gray-200 text-gray-500 text-lg">
-                  {user?.firstName.charAt(0).toUpperCase() || "U"}{" "}
-                  {user?.lastName.charAt(0).toUpperCase() || "O"}
+                <AvatarFallback className="rounded-lg bg-gray-200 text-gray-500 font-bold text-lg">
+                  {user?.firstName.charAt(0).toUpperCase() || "A"}
+                  {user?.lastName.charAt(0).toUpperCase() || "N"}
                 </AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-lg leading-tight">
+              <div className="grid flex-1 items-center text-left text-lg leading-tight">
                 <span className="truncate font-medium">
                   {user?.firstName} {user?.lastName}
+                  {user?.role === "admin" && (
+                    <Badge
+                      variant="secondary"
+                      className="ml-4 bg-blue-500 text-white dark:bg-blue-600"
+                    >
+                      Admin
+                    </Badge>
+                  )}
+                  {user?.role !== "admin" && user?.agentRole === "owner" && (
+                    <Badge
+                      variant="secondary"
+                      className="ml-4 bg-blue-500 text-white dark:bg-blue-600"
+                    >
+                      Owner
+                    </Badge>
+                  )}
                 </span>
                 <span className="text-muted-foreground truncate text-xs">
                   {user?.phoneNumber}
@@ -136,9 +153,9 @@ export function NavUser() {
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarFallback className="rounded-lg bg-gray-200 text-gray-500 text-lg">
-                    {user?.firstName.charAt(0).toUpperCase() || "U"}{" "}
-                    {user?.lastName.charAt(0).toUpperCase() || "O"}
+                  <AvatarFallback className="rounded-lg bg-gray-200 text-gray-500 font-bold text-lg">
+                    {user?.firstName.charAt(0).toUpperCase() || "A"}
+                    {user?.lastName.charAt(0).toUpperCase() || "N"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-lg leading-tight">
@@ -153,10 +170,12 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem className="text-lg">
-                <IconUserCircle className="!size-5" />
-                Account
-              </DropdownMenuItem>
+              <Link href="/account/">
+                <DropdownMenuItem className="text-lg">
+                  <IconUserCircle className="!size-5" />
+                  Tài khoản của tôi
+                </DropdownMenuItem>
+              </Link>
               <DropdownMenuItem className="text-lg">
                 <IconCreditCard className="!size-5" />
                 Billing

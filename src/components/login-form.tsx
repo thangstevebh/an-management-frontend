@@ -6,16 +6,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMutation } from "@tanstack/react-query";
-import {
-  ILoginResponse,
-  loginOptions,
-} from "@/lib/queryOptions/login-query-option";
+import { ILoginResponse } from "@/lib/queryOptions/login-query-option";
 import { useRouter } from "next/navigation";
 import { getCookie, setCookie } from "cookies-next/client";
-import { ACCESS_TOKEN_KEY } from "@/lib/constant";
+import { ACCESS_TOKEN_KEY, ICommonResponse } from "@/lib/constant";
 import { IconInnerShadowBottomRight } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
+import useAxios from "@/lib/axios/axios.config";
+import { toast } from "sonner";
+import { AxiosError } from "axios";
 
 export function LoginForm({
   className,
@@ -23,18 +23,9 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
   const router = useRouter();
 
-  const [clickButton, setClickButton] = useState(false);
-  const [disableButton, setDisableButton] = useState(false);
-
   useEffect(() => {
-    // Reset the button state when the component mounts
-    setClickButton(true);
-    setDisableButton(true);
-
     const token = getCookie(ACCESS_TOKEN_KEY) as string | null;
     if (!token) {
-      setClickButton(false);
-      setDisableButton(false);
       return;
     }
 
@@ -46,10 +37,6 @@ export function LoginForm({
     }
   }, [router]);
 
-  const handleClick = () => {
-    setClickButton(true);
-  };
-
   const loginMutation = useMutation({
     mutationKey: ["login"],
     mutationFn: async ({
@@ -59,17 +46,17 @@ export function LoginForm({
       phoneNumber: string;
       password: string;
     }) => {
-      setDisableButton(true);
-      const response = await fetch(
+      const response = await useAxios.post(
         `${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth/login` || "/api/login",
         {
-          method: "POST" as const,
+          phoneNumber,
+          password,
+        },
+        {
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phoneNumber, password }),
         },
       );
-      if (!response.ok) throw new Error("Login failed");
-      return response.json();
+      return response.data;
     },
     onSuccess: (data: ILoginResponse) => {
       setCookie(ACCESS_TOKEN_KEY, data.data.accessToken);
@@ -77,9 +64,17 @@ export function LoginForm({
       // navigate to the home page or dashboard
       router.push("/dashboard");
     },
-    onError: (error) => {
-      console.error("Login failed:", error);
+    onError: (error: AxiosError) => {
+      const errorResponse = error.response?.data as ICommonResponse;
+      toast.error(
+        `Đăng nhập thất bại: ${errorResponse?.message || "Lỗi không xác định"}`,
+        {
+          description: "Vui lòng kiểm tra lại thông tin đăng nhập của bạn.",
+        },
+      );
     },
+    retry: 3,
+    retryDelay: 1000,
   });
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -157,12 +152,11 @@ export function LoginForm({
                 </div>
                 <Button
                   type="submit"
-                  onClick={handleClick}
-                  disabled={disableButton}
+                  disabled={loginMutation.isPending}
                   className="w-full hover:bg-gray-100 text-lg hover:text-gray-700 hover:shadow-lg transition-colors duration-100 ease-in-out"
                 >
                   Đăng nhập{" "}
-                  {clickButton && (
+                  {loginMutation.isPending && (
                     <IconInnerShadowBottomRight className="animate-spin h-8 w-8 text-blue-500 !size-6" />
                   )}
                 </Button>

@@ -6,6 +6,7 @@ import { ACCESS_TOKEN_KEY } from "@/lib/constant";
 import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/lib/providers/user-provider";
+import { useAgentStore } from "@/lib/providers/agent-provider";
 
 interface User {
   _id: string;
@@ -38,7 +39,8 @@ export const useUser = (): UseUserReturn => {
   const [user, setUser] = useState<ClientUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { storeUser } = useUserStore((state) => state);
+  const { storeUser, clearUser } = useUserStore((state) => state);
+  const { clearAgent } = useAgentStore((state) => state);
 
   const fetchUser = useCallback(async () => {
     try {
@@ -86,6 +88,8 @@ export const useUser = (): UseUserReturn => {
     deleteCookie(ACCESS_TOKEN_KEY);
     setUser(null);
     setError(null);
+    clearUser();
+    clearAgent();
     router.push("/login");
   };
 

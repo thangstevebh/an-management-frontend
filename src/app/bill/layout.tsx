@@ -34,7 +34,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     >
       <AppSidebar variant="inset" />
       <SidebarInset>
-        <SiteHeader title="Quản lý Bill" buttonLinks={buttonLinks} />
+        <SiteHeader
+          title="Quản lý hoá đơn và thanh toán"
+          buttonLinks={buttonLinks}
+        />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">

@@ -34,7 +34,7 @@ export default function Page() {
       defaultFeePercent,
       feeBack,
       maturityDate,
-      collaboratorId,
+      cardCollaboratorId,
     }: {
       name: string;
       bankCode: string;
@@ -42,7 +42,7 @@ export default function Page() {
       defaultFeePercent: number;
       feeBack: number;
       maturityDate: Date;
-      collaboratorId: string | null;
+      cardCollaboratorId: string | null;
     }) => {
       const response = await useAxios.post(
         `agent/add-card`,
@@ -53,7 +53,7 @@ export default function Page() {
           defaultFeePercent,
           feeBack,
           maturityDate,
-          collaboratorId,
+          cardCollaboratorId,
         },
         {
           headers: {
@@ -133,7 +133,6 @@ export default function Page() {
       event.preventDefault();
       return;
     }
-    console.log("Agent Data:", collaboratorData);
 
     const createCardPayload: {
       name: string;
@@ -142,7 +141,7 @@ export default function Page() {
       defaultFeePercent: number;
       feeBack: number;
       maturityDate: Date;
-      collaboratorId: string | null;
+      cardCollaboratorId: string | null;
     } = {
       name: collaboratorData.name.trim(),
       bankCode: collaboratorData.bankCode.trim(),
@@ -150,7 +149,7 @@ export default function Page() {
       defaultFeePercent: parseFloat(collaboratorData.defaultFeePercent),
       feeBack: parseFloat(collaboratorData.feeBack),
       maturityDate: new Date(collaboratorData?.maturityDate),
-      collaboratorId: null,
+      cardCollaboratorId: null,
     };
 
     let newCollaboratorCreated: CollaboratorData | null = null;
@@ -169,8 +168,7 @@ export default function Page() {
       newCollaboratorCreated = createdCollaboratorMutation.data.collaborator;
     }
 
-    createCardPayload.collaboratorId = newCollaboratorCreated?._id || null;
-    console.log("Create Card Payload:", createCardPayload);
+    createCardPayload.cardCollaboratorId = newCollaboratorCreated?._id || null;
 
     await createCardMutation.mutateAsync({
       ...createCardPayload,
@@ -181,11 +179,17 @@ export default function Page() {
     setIsNewCollaborator(false);
     setWasSubmitted(false);
   };
+
   return (
     <div>
       <ButtonBack />
       <div className="flex flex-col items-center justify-start w-full">
         <h1 className="text-2xl font-bold mb-4">Thêm thẻ mới</h1>
+        <p className="text-center mb-4 text-gray-500">
+          Bạn có thể thêm thẻ mới để quản lý giao dịch. Vui lòng nhập thông tin
+          thẻ và chọn cộng tác viên nếu cần.
+        </p>
+
         <form
           ref={formRef}
           onSubmit={handleSubmit}

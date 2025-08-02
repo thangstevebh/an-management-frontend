@@ -81,15 +81,15 @@ export function SelectCollaboratorCombobox({
             ? listCollaborators.find(
                 (collaborator) => collaborator.name.trim() === value,
               )?.name
-            : "Select framework..."}
+            : "Chọn..."}
           <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full p-0">
         <Command>
-          <CommandInput placeholder="Search framework..." />
+          <CommandInput placeholder="Tìm kiếm..." />
           <CommandList>
-            <CommandEmpty>No framework found.</CommandEmpty>
+            <CommandEmpty>Không tìm thấy</CommandEmpty>
             <CommandGroup>
               {listCollaborators.map((collaborator) => (
                 <CommandItem

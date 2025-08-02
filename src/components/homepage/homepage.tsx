@@ -1,10 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { getQueryClient } from "@/lib/get-query-client";
 import { pokemonOptions } from "@/lib/queryOptions/sampleQueryOption";
-import { useCounterStore } from "@/lib/providers/counter-provider";
 
 export default function HomePage() {
   const queryClient = getQueryClient();

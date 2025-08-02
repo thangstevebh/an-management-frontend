@@ -14,9 +14,14 @@ const protectedRoutes = [
   "/pos",
   "/users",
   "/agent",
+  "/account",
+  "/information",
+  "/bill",
+  "/command",
 ];
 const adminProtectedRoutes = ["/agent/create-agent", "/admin"];
 const publicRoutes = ["/login", "/signup"];
+const changePasswordRoutes = ["/account/change-password"];
 
 export default async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
@@ -30,6 +35,7 @@ export default async function middleware(req: NextRequest) {
   const isAdminProtectedRoute = adminProtectedRoutes.some((route) =>
     path.startsWith(route),
   );
+  const isChangePasswordRoute = changePasswordRoutes.includes(path);
 
   const isAuthenticated = await checkIsAuthenticated();
   const sessionDecode = await getDecodedSession();
@@ -66,6 +72,17 @@ export default async function middleware(req: NextRequest) {
     !req.nextUrl.pathname.startsWith("/dashboard")
   ) {
     return NextResponse.redirect(new URL("/dashboard", req.nextUrl));
+  }
+
+  if (
+    isProtectedRoute &&
+    !isChangePasswordRoute &&
+    sessionDecode?.isChangedPassword === false &&
+    isAuthenticated
+  ) {
+    return NextResponse.redirect(
+      new URL("/account/change-password", req.nextUrl),
+    );
   }
 
   return NextResponse.next();
