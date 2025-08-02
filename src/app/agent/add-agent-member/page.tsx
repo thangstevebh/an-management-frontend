@@ -204,12 +204,14 @@ export default function Page() {
             className="w-full max-w-xs"
             disabled={createAgentMemberMutation.isPending}
           >
-            {createAgentMemberMutation.isPending
-              ? "Đang tạo..." +
-                (
-                  <IconInnerShadowBottomRight className="animate-spin h-8 w-8 text-blue-500 !size-6" />
-                )
-              : "Tạo"}
+            {createAgentMemberMutation.isPending ? (
+              <>
+                Đang tạo...
+                <IconInnerShadowBottomRight className="animate-spin h-8 w-8 text-blue-500 !size-6" />
+              </>
+            ) : (
+              "Tạo"
+            )}
           </Button>
         </div>
       </form>

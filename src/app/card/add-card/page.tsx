@@ -318,12 +318,14 @@ export default function Page() {
               className="w-full max-w-xs"
               disabled={createCardMutation.isPending}
             >
-              {createCardMutation.isPending
-                ? "Đang tạo..." +
-                  (
-                    <IconInnerShadowBottomRight className="animate-spin h-8 w-8 text-blue-500 !size-6" />
-                  )
-                : "Tạo"}
+              {createCardMutation.isPending ? (
+                <>
+                  Đang tạo...
+                  <IconInnerShadowBottomRight className="animate-spin h-8 w-8 text-blue-500 !size-6" />
+                </>
+              ) : (
+                "Tạo"
+              )}
             </Button>
           </div>
         </form>
