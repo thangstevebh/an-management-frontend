@@ -15,7 +15,7 @@ export function SiteHeader({
     label: string;
     icon: Icon;
     roles: ("admin" | "user")[];
-    agentRoles?: ("owner" | "member")[];
+    agentRoles?: ("owner" | "member" | "manager")[];
   }[];
 }) {
   const { user } = useUser();

@@ -20,6 +20,7 @@ import {
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
+import { useRouter } from "next/navigation";
 
 interface CardDetailData {
   _id: string;
@@ -154,10 +155,12 @@ export default function RenderCardDetail({
     ],
   );
 
-  const getFieldValue = (value: any): string => {
-    // Convert numeric values to string with proper decimal formatting
+  const getFieldValue = (value: any, isCurrency?: boolean): string => {
     if (typeof value === "number") {
       return value.toString();
+    }
+    if (isCurrency) {
+      return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
 
     // Convert date values to properly formatted local string
@@ -208,6 +211,7 @@ export default function RenderCardDetail({
     type: "input" | "textarea" | "select" | "date" = "input",
     isDisable?: boolean,
     options?: string[],
+    isCurrency?: boolean,
   ) => {
     if (!cardDetailData) return null;
 
@@ -313,14 +317,19 @@ export default function RenderCardDetail({
               if (isDisable) return;
               handleFieldClick(field);
             }}
-            className="p-2 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-colors min-h-[2.5rem] flex items-center"
+            className={cn(
+              "p-2 border border-gray-200 rounded-md cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-colors min-h-[2.5rem] flex items-center",
+              field === "negativeRemainingAmount"
+                ? "text-red-500"
+                : "text-gray-800",
+            )}
           >
             {currentValue ||
             (typeof currentValue === "number" && currentValue === 0) ? (
               type === "date" ? (
                 getFieldValue(currentValue)
               ) : (
-                getFieldValue(currentValue)
+                getFieldValue(currentValue, isCurrency)
               )
             ) : (
               <span className="text-gray-400">{currentValue}</span>
@@ -382,11 +391,27 @@ export default function RenderCardDetail({
     createNewCardDetailStageMutation.mutate();
   }, [createNewCardDetailStageMutation]);
 
+  const router = useRouter();
+
   return (
     <div className="flex flex-col gap-2 bg-white p-4 rounded-lg shadow-sm border flex-1">
-      <h2 className="text-lg font-semibold mb-1">Thông tin tiền trong thẻ</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold mb-1">Thông tin tiền trong thẻ</h2>
+        <Button
+          variant="secondary"
+          className="hidden  hover:cursor-pointer sm:flex hover:bg-gray-200"
+          onClick={() => router.push(`/card/${cardDetailData?.cardId}/history`)}
+          disabled={
+            createNewCardDetailStageMutation.isPending ||
+            !cardDetailData?.isCurrent
+          }
+        >
+          <span className="text-sm">Lịch sử giao dịch</span>
+        </Button>
+      </div>
+
       <Button
-        className="mb-2"
+        className="mb-2 hover:bg-red-700 hover:text-white hidden sm:flex hover:cursor-pointer"
         variant="destructive"
         onClick={() => handleEndCardStage()}
         disabled={
@@ -407,18 +432,58 @@ export default function RenderCardDetail({
         <div className="text-gray-500">No card detail found</div>
       ) : (
         <>
-          {renderEditableField("amount", "Số tiền", "input")}
+          {renderEditableField(
+            "amount",
+            "Số tiền",
+            "input",
+            true,
+            undefined,
+            true,
+          )}
           {renderEditableField("feePercent", "Phí (%)", "input")}
           {renderEditableField(
             "negativeRemainingAmount",
             "Số tiền âm còn lại",
             "input",
+            false,
+            undefined,
+            true,
           )}
-          {renderEditableField("withdrawedAmount", "Số tiền đã rút", "input")}
+          {renderEditableField(
+            "withdrawedAmount",
+            "Số tiền đã rút",
+            "input",
+            true,
+            undefined,
+            true,
+          )}
+          <div className="flex flex-col gap-2">
+            <Label className="block py-2">Số tiền còn lại</Label>
+            <div
+              className={cn(
+                "p-2 font-bold border border-gray-200 rounded-md",
+                cardDetailData?.amount -
+                  (cardDetailData?.withdrawedAmount || 0) >=
+                  0
+                  ? "text-green-600"
+                  : "text-red-600",
+              )}
+            >
+              {getFieldValue(
+                String(
+                  cardDetailData?.amount -
+                    (cardDetailData?.withdrawedAmount || 0),
+                ),
+                true,
+              )}
+            </div>
+          </div>
           {renderEditableField(
             "fromDate",
             "Ngày bắt đầu giai đoạn thẻ",
             "date",
+            true,
+            undefined,
             true,
           )}
           {/* {renderEditableField("endDate", "End Date", "date", true)} */}

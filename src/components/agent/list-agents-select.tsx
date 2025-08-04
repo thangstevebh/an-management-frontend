@@ -90,7 +90,18 @@ export default function ListAgentsSelect({ posData }: { posData: PosData }) {
 
   return (
     <div className="flex flex-col">
-      <Label className="block py-2 text-2xl font-bold">Đại lý</Label>
+      <Label className="block py-2 text-2xl font-bold">
+        Chọn đại lý
+        {posData?.agentId && (
+          <span className="text-sm text-gray-500">
+            {" "}
+            (Đại lý hiện tại:{" "}
+            {agents.find((a: any) => a._id === posData.agentId)?.name ||
+              "Không có"}
+            )
+          </span>
+        )}
+      </Label>
       <Select
         defaultValue={posData?.agentId || ""}
         onValueChange={handleChange}

@@ -70,7 +70,7 @@ export default function AddBillForm({
     setWasSubmitted(true);
     const formData = new FormData(event.currentTarget);
     const amountString = formData.get("amount") as string;
-    const cleanedAmountString = amountString.replace(/\./g, "");
+    const cleanedAmountString = amountString.replace(/\,/g, "");
     const amount = parseFloat(cleanedAmountString);
 
     const checkData = {
@@ -137,9 +137,9 @@ export default function AddBillForm({
               wasSubmitted={wasSubmitted}
               fieldSchema={addBillSchema.shape["amount"]}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                const value = e.target.value.replace(/\./g, "");
+                const value = e.target.value.replace(/\,/g, "");
                 if (/^\d*$/.test(value)) {
-                  e.target.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                  e.target.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                 }
               }}
             />

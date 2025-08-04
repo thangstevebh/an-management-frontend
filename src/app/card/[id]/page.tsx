@@ -12,6 +12,7 @@ import useAxios from "@/lib/axios/axios.config";
 import { ICommonResponse } from "@/lib/constant";
 import { convertDecimal128ToString } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import React, { useState, useCallback } from "react";
 import { toast } from "sonner";
@@ -121,10 +122,25 @@ export default function Page() {
             Bạn có thể xem chi tiết thẻ, thông tin cộng tác viên liên quan.
           </p>
         </div>
+
+        <Button asChild size="lg" className="hidden sm:flex text-lg">
+          <Link
+            rel="noopener noreferrer"
+            className="w-48 flex items-center gap-2 font-medium mx-auto mb-6"
+            href={`/bill/add-bill?cardId=${cardData?._id}`}
+          >
+            Tạo bill mới
+          </Link>
+        </Button>
+
         {isLoading ? (
           <CreditCardSkeleton />
         ) : (
-          <CreditCard name={cardData?.name} cardNumber={cardData?.lastNumber} />
+          <CreditCard
+            name={cardData?.name}
+            cardNumber={cardData?.lastNumber}
+            colloborator={cardData?.collaborator?.name}
+          />
         )}
 
         <div className="flex w-full gap-4 mx-auto my-4">

@@ -114,6 +114,16 @@ export default function Page() {
       if (formRef.current) {
         formRef.current.reset();
       }
+      queryClient.invalidateQueries({
+        queryKey: [
+          "list-commands-by-user",
+          "pending",
+          "withdraw",
+          user?.agentId,
+          1,
+          false,
+        ],
+      });
       toast.success("Tạo lệnh rút tiền thành công", {
         description: "Lệnh rút tiền đã được tạo thành công.",
       });
@@ -129,7 +139,7 @@ export default function Page() {
     setWasSubmitted(true);
     const formData = new FormData(event.currentTarget);
     const amountString = formData.get("amount") as string;
-    const cleanedAmountString = amountString.replace(/\./g, "");
+    const cleanedAmountString = amountString.replace(/\,/g, "");
     const amount = parseFloat(cleanedAmountString);
 
     const checkData = {
@@ -244,11 +254,11 @@ export default function Page() {
                   wasSubmitted={wasSubmitted}
                   fieldSchema={addWithdrawCommandSchema.shape["amount"]}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    const value = e.target.value.replace(/\./g, "");
+                    const value = e.target.value.replace(/\,/g, "");
                     if (/^\d*$/.test(value)) {
                       e.target.value = value.replace(
                         /\B(?=(\d{3})+(?!\d))/g,
-                        ".",
+                        ",",
                       );
                     }
                   }}

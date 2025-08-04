@@ -222,19 +222,18 @@ export function AgentMembersTable() {
       cell: ({ row }) => (
         <div className="uppercase">
           <div className="capitalize text-center max-w-[100px]">
-            {row.original.agentRole && row.original.agentRole !== "owner" ? (
-              <Badge
-                variant="secondary"
-                className="bg-emerald-500 text-white dark:bg-emerald-600"
-              >
-                Nhân viên
+            {row.original.agentRole && row.original.agentRole === "owner" ? (
+              <Badge variant="secondary" className="bg-blue-600 text-white">
+                Chủ sở hữu
+              </Badge>
+            ) : row.original.agentRole &&
+              row.original.agentRole === "manager" ? (
+              <Badge variant="secondary" className="bg-blue-500 text-white">
+                {row.original.agentRole}
               </Badge>
             ) : (
-              <Badge
-                variant="secondary"
-                className="bg-blue-500 text-white dark:bg-blue-600"
-              >
-                Chủ sở hữu
+              <Badge variant="secondary" className="bg-emerald-500 text-white">
+                {row.original.agentRole}
               </Badge>
             )}
           </div>

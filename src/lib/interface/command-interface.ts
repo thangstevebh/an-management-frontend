@@ -53,6 +53,7 @@ export interface ICommand {
   note: string | null;
   code: string;
   incommingAmount: number | any;
+  withdrawRequestedAmount: number | any;
   atDate: Date | null;
   createdBy: string | null;
   isConfirmed: false;

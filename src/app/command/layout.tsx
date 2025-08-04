@@ -18,21 +18,21 @@ const buttonLinks = [
     label: "Thêm lệnh nạp tiền",
     icon: IconMailDown,
     roles: ["admin", "user"],
-    agentRoles: ["owner"],
+    agentRoles: ["owner", "manager"],
   },
   {
     href: "/command/add-withdraw-command",
     label: "Thêm lệnh rút tiền",
     icon: IconMailUp,
     roles: ["admin", "user"],
-    agentRoles: ["owner"],
+    agentRoles: ["owner", "manager"],
   },
 ] as {
   href: string;
   label: string;
   icon: Icon;
   roles: ("admin" | "user")[];
-  agentRoles?: ("owner" | "member")[];
+  agentRoles?: ("owner" | "member" | "manager")[];
 }[];
 
 export default function Layout({ children }: { children: React.ReactNode }) {

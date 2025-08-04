@@ -4,7 +4,7 @@ export const addIncommingCommandSchema = z.object({
   amount: z
     .string()
     .transform((val) => {
-      const num = parseFloat(val.replace(/\./g, ""));
+      const num = parseFloat(val.replace(/\,/g, ""));
       return isNaN(num) ? val : num;
     })
     .refine((val) => typeof Number(val) === "number", {

@@ -374,7 +374,11 @@ export default function PosById({}) {
 
   return (
     <div className="flex flex-col gap-2">
-      {isAdmin && <ListAgentsSelect posData={posData} />}
+      {isAdmin && (
+        <div className="max-w-[80%] mx-auto w-full mb-4">
+          <ListAgentsSelect posData={posData} />
+        </div>
+      )}
 
       <div className="flex max-w-[80%] mx-auto w-full gap-4 bg-white p-6 rounded-lg shadow-sm border">
         <div className="flex-1">

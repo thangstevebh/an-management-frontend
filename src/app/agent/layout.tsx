@@ -24,7 +24,7 @@ const buttonLinks = [
   label: string;
   icon: Icon;
   roles: ("admin" | "user")[];
-  agentRoles?: ("owner" | "member")[];
+  agentRoles?: ("owner" | "member" | "manager")[];
 }[];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
