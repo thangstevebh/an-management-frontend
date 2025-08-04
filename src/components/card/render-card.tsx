@@ -104,7 +104,8 @@ export default function RenderCard({
     (field: keyof EditableFields) => {
       const value = editValues[field];
       if (value === undefined || value === String(cardData?.[field] || "")) {
-        handleCancel();
+        setEditingField(null);
+        setEditValues({});
         return;
       }
 
@@ -113,7 +114,7 @@ export default function RenderCard({
 
       updateCardMutation.mutate({ [field]: updateValue });
     },
-    [editValues, cardData, updateCardMutation],
+    [editValues, setEditValues, setEditingField, cardData, updateCardMutation],
   );
 
   const handleCancel = useCallback(() => {

@@ -1,6 +1,7 @@
 "use client";
 
 import { AgentDetail, IAgent } from "@/components/agent/agent-detail";
+import AgentDetailSkeleton from "@/components/agent/agent-detail-skeleton";
 import { AgentMembersTable } from "@/components/agent/agent-members";
 import { ButtonBack } from "@/components/ui/button-back";
 import { useUser } from "@/hooks/use-user";
@@ -56,12 +57,11 @@ export default function Page() {
   return (
     <div>
       <ButtonBack />
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 w-full">
+        {isLoading && <AgentDetailSkeleton />}
         {!isAdmin && agent && <AgentDetail agent={agent} />}
       </div>
-      <div className="mt-12">
-        <AgentMembersTable />
-      </div>
+      <div className="mt-12">{!isLoading && <AgentMembersTable />}</div>
     </div>
   );
 }

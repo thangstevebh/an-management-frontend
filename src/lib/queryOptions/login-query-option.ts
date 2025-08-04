@@ -13,7 +13,7 @@ export interface ILoginResponse {
   };
 }
 
-export function loginOptions({ phoneNumber, password }: LoginParams) {
+export function useLoginOptions({ phoneNumber, password }: LoginParams) {
   return {
     queryKey: ["login", phoneNumber],
     url: `${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth/login`,

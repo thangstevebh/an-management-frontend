@@ -82,7 +82,7 @@ export const useUser = (): UseUserReturn => {
     if (userId && user) {
       memoizedStoreUser(user);
     }
-  }, [userId, memoizedStoreUser]);
+  }, [userId, memoizedStoreUser, user]);
 
   const logout = () => {
     deleteCookie(ACCESS_TOKEN_KEY);

@@ -2,6 +2,7 @@
 
 import PosById from "@/components/pos/pos-by-id";
 import { ButtonBack } from "@/components/ui/button-back";
+import PosTerminalUI from "@/components/ui/pos-terminal";
 import React from "react";
 
 export default function Page() {
@@ -15,7 +16,14 @@ export default function Page() {
             Vui lòng chọn máy POS để xem chi tiết.
           </p>
         </div>
-        <PosById />
+        <div className="grid grid-cols-4 w-full items-center justify-center">
+          <div className="flex justify-center items-start h-full w-full col-span-1">
+            <PosTerminalUI />
+          </div>
+          <div className="col-span-3 w-full">
+            <PosById />
+          </div>
+        </div>
       </div>
     </div>
   );

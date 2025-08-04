@@ -74,7 +74,7 @@ export default function Page() {
       password: string;
     }) => {
       const response = await useAxios.post(
-        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/auth/login` || "/api/login",
+        `auth/login`,
         {
           phoneNumber,
           password,
@@ -133,6 +133,7 @@ export default function Page() {
     await changePasswordMutation.mutateAsync({
       ...createPayload,
     });
+
     await loginMutation.mutateAsync({
       phoneNumber: user?.phoneNumber || "",
       password: createPayload.newPassword,

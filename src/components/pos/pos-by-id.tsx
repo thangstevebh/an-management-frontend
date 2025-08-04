@@ -167,14 +167,20 @@ export default function PosById({}) {
       setEditingField(field);
       setEditValues({ [field]: String(posData[field] || "") });
     },
-    [posData],
+    [posData, setEditingField, setEditValues],
   );
+
+  const handleCancel = useCallback(() => {
+    setEditingField(null);
+    setEditValues({});
+  }, []);
 
   const handleSave = useCallback(
     (field: keyof EditableFields) => {
       const value = editValues[field];
       if (value === undefined || value === String(posData?.[field] || "")) {
-        handleCancel();
+        setEditingField(null);
+        setEditValues({});
         return;
       }
 
@@ -185,11 +191,6 @@ export default function PosById({}) {
     },
     [editValues, posData, updatePosMutation],
   );
-
-  const handleCancel = useCallback(() => {
-    setEditingField(null);
-    setEditValues({});
-  }, []);
 
   const handleKeyPress = useCallback(
     (e: React.KeyboardEvent, field: keyof EditableFields) => {

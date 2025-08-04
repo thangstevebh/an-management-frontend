@@ -11,10 +11,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  IconChevronCompactLeft,
-  IconChevronCompactRight,
-  IconChevronLeftPipe,
-  IconChevronRightPipe,
+  IconChevronsLeft,
+  IconChevronsRight,
+  IconChevronLeft,
+  IconChevronRight,
 } from "@tabler/icons-react";
 
 interface DataTablePaginationProps<TData> {
@@ -69,7 +69,7 @@ export function DataTablePagination<TData>({
             disabled={!table.getCanPreviousPage() || pageCount === -1}
           >
             <span className="sr-only">Go to first page</span>
-            <IconChevronLeftPipe className="h-4 w-4" />
+            <IconChevronsLeft className="h-4 w-4" />
           </Button>
           <Button
             variant="outline"
@@ -78,7 +78,7 @@ export function DataTablePagination<TData>({
             disabled={!table.getCanPreviousPage() || pageCount === -1}
           >
             <span className="sr-only">Go to previous page</span>
-            <IconChevronCompactLeft className="h-4 w-4" />
+            <IconChevronLeft className="h-4 w-4" />
           </Button>
           <Button
             variant="outline"
@@ -87,7 +87,7 @@ export function DataTablePagination<TData>({
             disabled={!table.getCanNextPage() || pageCount === -1}
           >
             <span className="sr-only">Go to next page</span>
-            <IconChevronCompactRight className="h-4 w-4" />
+            <IconChevronRight className="h-4 w-4" />
           </Button>
           <Button
             variant="outline"
@@ -96,7 +96,7 @@ export function DataTablePagination<TData>({
             disabled={!table.getCanNextPage() || pageCount === -1}
           >
             <span className="sr-only">Go to last page</span>
-            <IconChevronRightPipe className="h-4 w-4" />
+            <IconChevronsRight className="h-4 w-4" />
           </Button>
         </div>
       </div>

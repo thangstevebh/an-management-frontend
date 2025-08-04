@@ -163,6 +163,7 @@ export default function RenderCollaborator({
     newCollaborator,
     debouncedNewCollaborator,
     collaborator,
+    updateCardMutation,
   ]);
 
   const [isHaveCollaborator, setIsHaveCollaborator] = useState(true);
@@ -173,7 +174,7 @@ export default function RenderCollaborator({
     } else {
       setIsHaveCollaborator(false);
     }
-  }, [cardCollaboratorData]);
+  }, [cardCollaboratorData, setIsHaveCollaborator]);
 
   const handleEnterNewCollaborator = async (
     e: React.KeyboardEvent<HTMLInputElement>,

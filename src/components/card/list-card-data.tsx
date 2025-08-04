@@ -38,12 +38,10 @@ import {
 import { DataTablePagination } from "../ui/pagination-table";
 import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@/hooks/use-user";
-import { useEffect } from "react";
 import useAxios from "@/lib/axios/axios.config";
 import { toast } from "sonner";
 import Link from "next/link";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
-import { IPagemeta } from "@/lib/constant";
 import { useDebounce } from "@/hooks/use-debounce";
 import LoadingThreeDot from "../ui/loading-three-dot";
 

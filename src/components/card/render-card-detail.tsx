@@ -124,7 +124,8 @@ export default function RenderCardDetail({
         value === undefined ||
         value === String(cardDetailData?.[field] || "")
       ) {
-        handleCancel();
+        setEditingField(null);
+        setEditValues({});
         return;
       }
 
@@ -144,7 +145,13 @@ export default function RenderCardDetail({
 
       updateCardDetailMutation.mutate({ [field]: updateValue });
     },
-    [editValues, cardDetailData, updateCardDetailMutation],
+    [
+      editValues,
+      setEditingField,
+      setEditValues,
+      cardDetailData,
+      updateCardDetailMutation,
+    ],
   );
 
   const getFieldValue = (value: any): string => {
@@ -373,7 +380,7 @@ export default function RenderCardDetail({
 
   const handleEndCardStage = useCallback(() => {
     createNewCardDetailStageMutation.mutate();
-  }, [cardDetailData, createNewCardDetailStageMutation]);
+  }, [createNewCardDetailStageMutation]);
 
   return (
     <div className="flex flex-col gap-2 bg-white p-4 rounded-lg shadow-sm border flex-1">

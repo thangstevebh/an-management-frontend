@@ -78,7 +78,7 @@ export function NavUser() {
 
   useEffect(() => {
     storeAgent(agentInfo);
-  }, [agentInfo]);
+  }, [agentInfo, storeAgent]);
 
   return (
     <SidebarMenu className="">

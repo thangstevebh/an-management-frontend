@@ -43,6 +43,7 @@ import { useUser } from "@/hooks/use-user";
 import Link from "next/link";
 import { toGMT7 } from "@/lib/utils";
 import { Badge } from "../ui/badge";
+import LoadingThreeDot from "../ui/loading-three-dot";
 
 interface AgentMember {
   _id: string;
@@ -425,7 +426,7 @@ export function AgentMembersTable() {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  {isLoading ? <LoadingThreeDot /> : <span>No results.</span>}
                 </TableCell>
               </TableRow>
             )}

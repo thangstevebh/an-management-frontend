@@ -37,22 +37,18 @@ export const AgentDetail = ({ agent }: { agent: IAgent }) => {
         <p className="text-gray-500">Vui lòng chọn đại lý để xem chi tiết.</p>
       </div>
       <div className="h-full w-full px-4 lg:px-6">
-        <div className="flex flex-row justify-center items-center justify-items-center text-center bg-white p-6 rounded-lg shadow-sm border gap-2 hover:bg-sidebar-accent hover:shadow-md transition-shadow duration-200 ">
+        <div className="text-white flex flex-row justify-center items-center justify-items-center text-center p-6 rounded-lg shadow-sm border gap-2 bg-gradient-to-r from-blue-800 to-indigo-800 hover:shadow-md transition-shadow duration-200 ">
           <div className="w-[200px]">
-            <label className="block text-sm font-medium text-gray-700">
-              Tên đại lý
-            </label>
+            <label className="block text-sm font-medium">Tên đại lý</label>
             <div className="">
-              <span className="text-blue-500 text-lg font-bold text-center">
+              <span className="text-[#FFDE63] text-lg font-bold text-center">
                 {agent?.name}
               </span>
             </div>
           </div>
 
           <div className="w-[200px]">
-            <label className="block text-sm font-medium text-gray-700">
-              Chủ sở hữu
-            </label>
+            <label className="block text-sm font-medium">Chủ sở hữu</label>
             <div className="mt-1">
               {agent?.owner?.length > 0 ? (
                 agent?.owner[0]?.firstName || agent?.owner[0]?.lastName ? (
@@ -69,9 +65,7 @@ export const AgentDetail = ({ agent }: { agent: IAgent }) => {
           </div>
 
           <div className="w-[200px]">
-            <label className="block text-sm font-medium text-gray-700">
-              Trạng thái
-            </label>
+            <label className="block text-sm font-medium">Trạng thái</label>
             <div className="mt-1">
               {agent.isDeleted ? (
                 <span className="text-red-500">Đã xóa</span>
@@ -82,18 +76,14 @@ export const AgentDetail = ({ agent }: { agent: IAgent }) => {
           </div>
 
           <div className="w-[200px]">
-            <label className="block text-sm font-medium text-gray-700">
-              Ngày tạo
-            </label>
+            <label className="block text-sm font-medium">Ngày tạo</label>
             <div className="mt-1">
               {new Date(agent.createdAt).toLocaleDateString("vi-VN")}
             </div>
           </div>
 
           <div className="w-[200px]">
-            <label className="block text-sm font-medium text-gray-700">
-              Ngày cập nhật
-            </label>
+            <label className="block text-sm font-medium">Ngày cập nhật</label>
             <div className="mt-1">
               {new Date(agent.updatedAt).toLocaleDateString("vi-VN")}
             </div>

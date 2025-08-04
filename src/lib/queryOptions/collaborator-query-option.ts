@@ -1,4 +1,4 @@
-export function getCollaboratorQueryOptions() {
+export function useCollaboratorQueryOptions() {
   return {
     queryKey: ["collaborators"],
     queryFn: async () => {

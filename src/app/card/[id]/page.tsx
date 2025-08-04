@@ -3,6 +3,8 @@
 import RenderCard from "@/components/card/render-card";
 import RenderCollaborator from "@/components/card/render-card-collaborator";
 import RenderCardDetail from "@/components/card/render-card-detail";
+import CreditCard from "@/components/credit-card";
+import CreditCardSkeleton from "@/components/credit-card-skeleton";
 import { Button } from "@/components/ui/button";
 import { ButtonBack } from "@/components/ui/button-back";
 import { useUser } from "@/hooks/use-user";
@@ -114,16 +116,18 @@ export default function Page() {
       <ButtonBack />
       <div className="flex flex-col gap-2 max-full mx-auto">
         <div className="flex flex-col justify-center items-center">
-          <h1 className="text-2xl font-semibold">
-            Thông tin thẻ:{" "}
-            <span className="underline text-blue-600">{cardData?.name}</span>
-          </h1>
+          <h1 className="text-2xl font-semibold">Thông tin thẻ</h1>
           <p className="text-center mb-4 text-gray-500">
             Bạn có thể xem chi tiết thẻ, thông tin cộng tác viên liên quan.
           </p>
         </div>
+        {isLoading ? (
+          <CreditCardSkeleton />
+        ) : (
+          <CreditCard name={cardData?.name} cardNumber={cardData?.lastNumber} />
+        )}
 
-        <div className="flex w-full gap-4 mx-auto">
+        <div className="flex w-full gap-4 mx-auto my-4">
           <div className="w-1/2 flex flex-col gap-4">
             <RenderCard
               cardData={cardData}
