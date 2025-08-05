@@ -85,8 +85,6 @@ export function LoginForm({
 
     if (typeof phoneNumber === "string" && typeof password === "string") {
       loginMutation.mutate({ phoneNumber, password });
-    } else {
-      console.error("Invalid form data");
     }
   };
 
@@ -114,7 +112,7 @@ export function LoginForm({
                       href="#"
                       className="ml-auto text-sm underline-offset-4 hover:underline"
                     >
-                      Forgot your password?
+                      Quên mật khẩu?
                     </a>
                   </div>
 

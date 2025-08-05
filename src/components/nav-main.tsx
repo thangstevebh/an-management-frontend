@@ -33,7 +33,7 @@ export function NavMain({
               <SidebarMenuButton
                 size="lg"
                 tooltip="Tạo Bill Nhanh"
-                className="hover:cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
+                className="hover:cursor-pointer bg-blue-500 text-primary-foreground hover:bg-blue-600 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
               >
                 <IconCirclePlusFilled className="!size-5" />
                 <span className="text-lg">Tạo Bill Nhanh</span>

@@ -346,11 +346,11 @@ export default function RenderCardDetail({
       const response = await useAxios.post(
         `/agent/add-card-detail`,
         {
-          detail: cardDetailData?.detail || "",
-          amount: cardDetailData?.amount || 0,
-          notWithdrawAmount: cardDetailData?.amount || 0,
-          withdrawedAmount: cardDetailData?.withdrawedAmount || 0,
-          negativeRemainingAmount: cardDetailData?.negativeRemainingAmount || 0,
+          detail: "",
+          amount: 0,
+          notWithdrawAmount: 0,
+          withdrawedAmount: 0,
+          negativeRemainingAmount: 0,
           feePercent: cardDetailData?.feePercent || 0,
         },
         {
