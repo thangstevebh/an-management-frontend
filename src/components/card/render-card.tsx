@@ -306,7 +306,7 @@ export default function RenderCard({
   };
 
   return (
-    <div className="flex flex-col gap-2 bg-white p-4 rounded-lg shadow-sm border flex-1">
+    <div className="flex flex-col gap-2 p-4 rounded-lg shadow-md border flex-1 w-full max-w-[500px] mx-auto">
       <h2 className="text-lg font-semibold mb-1">Thông tin thẻ</h2>
       {isLoading ? (
         <LoadingThreeDot />

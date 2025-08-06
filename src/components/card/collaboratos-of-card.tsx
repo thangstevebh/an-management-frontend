@@ -270,7 +270,7 @@ export function CollaboratorsOfCardData() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
-              Columns <ChevronDown />
+              Cột <ChevronDown />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -337,7 +337,7 @@ export function CollaboratorsOfCardData() {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  Không có dữ liệu
                 </TableCell>
               </TableRow>
             )}

@@ -198,8 +198,6 @@ export function CollaboratorData() {
       id: "actions",
       enableHiding: false,
       cell: ({ row }) => {
-        const payment = row.original;
-
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -263,7 +261,7 @@ export function CollaboratorData() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
-              Columns <ChevronDown />
+              Cột <ChevronDown />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -330,7 +328,7 @@ export function CollaboratorData() {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  Không có dữ liệu
                 </TableCell>
               </TableRow>
             )}

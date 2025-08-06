@@ -11,10 +11,10 @@ import { useUser } from "@/hooks/use-user";
 import useAxios from "@/lib/axios/axios.config";
 import { ICommonResponse } from "@/lib/constant";
 import { convertDecimal128ToString } from "@/lib/utils";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import React, { useState, useCallback } from "react";
+import React from "react";
 import { toast } from "sonner";
 
 export interface CardDetailData {
@@ -123,7 +123,11 @@ export default function Page() {
           </p>
         </div>
 
-        <Button asChild size="lg" className="hidden sm:flex text-lg">
+        <Button
+          asChild
+          size="lg"
+          className="hidden sm:flex text-lg bg-blue-500"
+        >
           <Link
             rel="noopener noreferrer"
             className="w-48 flex items-center gap-2 font-medium mx-auto mb-6"
@@ -143,22 +147,24 @@ export default function Page() {
           />
         )}
 
-        <div className="flex w-full gap-4 mx-auto my-4">
-          <div className="w-1/2 flex flex-col gap-4">
+        <div className="grid grid-cols-3 gap-4 my-4 w-full mx-auto">
+          <div className="">
             <RenderCard
               cardData={cardData}
               isLoading={isLoading}
               error={error}
             />
-            <RenderCollaborator
-              cardCollaboratorData={cardData?.collaborator || null}
+          </div>
+          <div className="">
+            <RenderCardDetail
+              cardDetailData={cardData?.currentDetail || null}
               isLoading={isLoading}
               error={error}
             />
           </div>
-          <div className="w-1/2">
-            <RenderCardDetail
-              cardDetailData={cardData?.currentDetail || null}
+          <div className="">
+            <RenderCollaborator
+              cardCollaboratorData={cardData?.collaborator || null}
               isLoading={isLoading}
               error={error}
             />

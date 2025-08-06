@@ -114,7 +114,7 @@ export const columns: ColumnDef<Pos>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Name
+          Tên máy
           <ArrowUpDown />
         </Button>
       );
@@ -123,7 +123,7 @@ export const columns: ColumnDef<Pos>[] = [
       <div className="uppercase">
         <Link
           href={`/pos/${row.getValue("_id")}/`}
-          className="text-blue-500 hover:underline"
+          className="text-blue-500 hover:underline font-semibold"
         >
           {row.getValue("name")}
         </Link>
@@ -133,13 +133,11 @@ export const columns: ColumnDef<Pos>[] = [
   },
   {
     accessorKey: "feePerDay",
-    header: () => <div className="text-center max-w-[50px]">Phí ngày</div>,
+    header: () => <div className="text-center">Phí theo ngày</div>,
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("feePerDay"));
 
-      return (
-        <div className="max-w-[50px] text-center font-medium">{amount}</div>
-      );
+      return <div className="text-center font-medium">{amount}</div>;
     },
   },
   {
@@ -155,7 +153,7 @@ export const columns: ColumnDef<Pos>[] = [
   },
   {
     accessorKey: "feeBack",
-    header: () => <div className="text-center max-w-[50px]">Phí Hoàn</div>,
+    header: () => <div className="text-center max-w-[50px]">Phí hoàn</div>,
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("feeBack"));
 
@@ -166,7 +164,7 @@ export const columns: ColumnDef<Pos>[] = [
   },
   {
     accessorKey: "feePercentNormal",
-    header: () => <div className="text-center max-w-[50px]">Phí(BT)</div>,
+    header: () => <div className="text-center max-w-[50px]">Phí thường</div>,
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("feePercentNormal"));
 
@@ -177,7 +175,7 @@ export const columns: ColumnDef<Pos>[] = [
   },
   {
     accessorKey: "feePercentMB",
-    header: () => <div className="text-center max-w-[50px]">Phí(MB)</div>,
+    header: () => <div className="text-center max-w-[50px]">Phí MB</div>,
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("feePercentMB"));
 
@@ -218,7 +216,7 @@ export const columns: ColumnDef<Pos>[] = [
   },
   {
     accessorKey: "posType",
-    header: () => <div className="text-center max-w-[50px]">Type</div>,
+    header: () => <div className="text-center max-w-[50px]">Loại</div>,
     cell: ({ row }) => (
       <div className="capitalize text-center max-w-[50px]">
         {row.getValue("posType")}
@@ -227,7 +225,7 @@ export const columns: ColumnDef<Pos>[] = [
   },
   {
     accessorKey: "sendAt",
-    header: () => <div className="text-center">Ngày gửi</div>,
+    header: () => <div className="text-center">Ngày gửi đi</div>,
     cell: ({ row }) => {
       const value = row.getValue("sendAt");
 
@@ -244,6 +242,20 @@ export const columns: ColumnDef<Pos>[] = [
     header: () => <div className="text-center">Ngày nhận</div>,
     cell: ({ row }) => {
       const value = row.getValue("receivedAt");
+
+      const valueDate = value ? new Date(value as string) : null;
+      const formattedDate = valueDate
+        ? `${valueDate.getDate().toString().padStart(2, "0")}/${(valueDate.getMonth() + 1).toString().padStart(2, "0")}/${valueDate.getFullYear()}`
+        : "N/A";
+
+      return <div className="capitalize text-center">{formattedDate}</div>;
+    },
+  },
+  {
+    accessorKey: "sendBackAt",
+    header: () => <div className="text-center">Ngày gửi trả</div>,
+    cell: ({ row }) => {
+      const value = row.getValue("sendBackAt");
 
       const valueDate = value ? new Date(value as string) : null;
       const formattedDate = valueDate
@@ -420,7 +432,7 @@ export function ListPosData() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
-              Columns <ChevronDown />
+              Cột <ChevronDown />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -490,7 +502,7 @@ export function ListPosData() {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  Không có dữ liệu
                 </TableCell>
               </TableRow>
             )}

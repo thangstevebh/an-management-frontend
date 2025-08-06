@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 import { getCookie, setCookie } from "cookies-next/client";
 import { ACCESS_TOKEN_KEY, ICommonResponse } from "@/lib/constant";
 import { IconInnerShadowBottomRight } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
 import useAxios from "@/lib/axios/axios.config";
 import { toast } from "sonner";

@@ -40,7 +40,6 @@ import useAxios from "@/lib/axios/axios.config";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@/hooks/use-user";
-import Link from "next/link";
 import { toGMT7 } from "@/lib/utils";
 import { Badge } from "../ui/badge";
 import LoadingThreeDot from "../ui/loading-three-dot";
@@ -170,7 +169,7 @@ export function AgentMembersTable() {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            username
+            Tên đăng nhập
             <ArrowUpDown />
           </Button>
         );
@@ -202,7 +201,7 @@ export function AgentMembersTable() {
       accessorFn: (row) => row.user.phoneNumber,
 
       header: ({ column }) => {
-        return <div className="text-center max-w-[100px]">Phone Number</div>;
+        return <div className="text-center max-w-[100px]">Số điện thoại</div>;
       },
       cell: ({ row }) => (
         <div className="uppercase">
@@ -217,7 +216,7 @@ export function AgentMembersTable() {
       accessorFn: (row) => row.user.role,
 
       header: ({ column }) => {
-        return <div className="text-center max-w-[100px]">Role</div>;
+        return <div className="text-center max-w-[100px]">Chức vụ</div>;
       },
       cell: ({ row }) => (
         <div className="uppercase">
@@ -245,7 +244,7 @@ export function AgentMembersTable() {
       accessorFn: (row) => row.isActive,
 
       header: ({ column }) => {
-        return <div className="text-center max-w-[100px]">Status</div>;
+        return <div className="text-center max-w-[100px]">Trạng thái</div>;
       },
       cell: ({ row }) => (
         <div className="uppercase">
@@ -277,7 +276,7 @@ export function AgentMembersTable() {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Created At
+            Ngày tham gia
             <ArrowUpDown />
           </Button>
         );
@@ -293,8 +292,6 @@ export function AgentMembersTable() {
       id: "actions",
       enableHiding: false,
       cell: ({ row }) => {
-        const payment = row.original;
-
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -358,7 +355,7 @@ export function AgentMembersTable() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
-              Columns <ChevronDown />
+              Cột <ChevronDown />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -425,7 +422,11 @@ export function AgentMembersTable() {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  {isLoading ? <LoadingThreeDot /> : <span>No results.</span>}
+                  {isLoading ? (
+                    <LoadingThreeDot />
+                  ) : (
+                    <span>Không có dữ liệu</span>
+                  )}
                 </TableCell>
               </TableRow>
             )}

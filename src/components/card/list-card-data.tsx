@@ -170,7 +170,7 @@ export function ListCardsData() {
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            Name
+            Tên thẻ
             <ArrowUpDown />
           </Button>
         );
@@ -193,7 +193,7 @@ export function ListCardsData() {
     },
     {
       accessorKey: "bankCode",
-      header: () => <div className="text-center max-w-[100px]">Bank Code</div>,
+      header: () => <div className="text-center max-w-[100px]">Ngân hàng</div>,
       cell: ({ row }) => (
         <div className="capitalize text-center max-w-[100px]">
           {row.getValue("bankCode")}
@@ -337,7 +337,7 @@ export function ListCardsData() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
-              Columns <ChevronDown />
+              Cột <ChevronDown />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -407,7 +407,11 @@ export function ListCardsData() {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  {isLoading ? <LoadingThreeDot /> : <span>No results.</span>}
+                  {isLoading ? (
+                    <LoadingThreeDot />
+                  ) : (
+                    <span>Không có dữ liệu</span>
+                  )}
                 </TableCell>
               </TableRow>
             )}

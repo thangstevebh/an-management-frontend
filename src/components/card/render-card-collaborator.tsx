@@ -5,7 +5,7 @@ import { useUser } from "@/hooks/use-user";
 import useAxios from "@/lib/axios/axios.config";
 import { cn } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import LoadingThreeDot from "../ui/loading-three-dot";
 import { Input } from "../ui/input";
@@ -14,8 +14,6 @@ import { SelectCollaboratorCombobox } from "./select-card-collaborator";
 import { IconUserCode, IconUserPlus } from "@tabler/icons-react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useParams } from "next/navigation";
-
-type EditableFields = Pick<CollaboratorData, "name">;
 
 export default function RenderCollaborator({
   cardCollaboratorData,
@@ -193,7 +191,7 @@ export default function RenderCollaborator({
   };
 
   return (
-    <div className="flex flex-col gap-2 bg-white p-4 rounded-lg shadow-sm border flex-1">
+    <div className="flex flex-col gap-2 p-4 rounded-lg shadow-md border flex-1 w-full max-w-[500px] mx-auto">
       <h2 className="text-lg font-semibold mb-1">Cộng tác viên thẻ</h2>
       {isLoading ? (
         <LoadingThreeDot />
@@ -239,7 +237,9 @@ export default function RenderCollaborator({
         </>
       ) : isHaveCollaborator ? (
         <div className="flex flex-1 justify-between items-center">
-          <span>{cardCollaboratorData.name}</span>
+          <span className="border rounded-lg px-2 py-1 bg-gray-100 text-blue-700 w-64 font-semibold">
+            {cardCollaboratorData.name}
+          </span>
           <Button
             variant="outline"
             className="ml-auto"

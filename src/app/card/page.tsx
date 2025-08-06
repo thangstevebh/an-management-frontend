@@ -6,8 +6,6 @@ import { ButtonBack } from "@/components/ui/button-back";
 export default function Page() {
   return (
     <div>
-      <ButtonBack />
-
       <h1 className="text-2xl font-semibold text-center mb-6">Thông tin thẻ</h1>
       <p className="text-center mb-4 text-gray-500">
         Vui lòng chọn thẻ để xem chi tiết. Nếu bạn không thấy thẻ nào, hãy kiểm

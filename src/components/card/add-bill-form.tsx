@@ -17,7 +17,6 @@ export default function AddBillForm({
   posTerminalId: string | null;
 }) {
   const { user } = useUser();
-  const queryClient = useQueryClient();
   const [wasSubmitted, setWasSubmitted] = useState(false);
 
   const formRef = useRef<HTMLFormElement>(null);
@@ -30,6 +29,7 @@ export default function AddBillForm({
       billNumber: string;
       customerFee: number;
       posFee: number;
+      posFeePerDay: number;
       backFee: number;
       note?: string;
       cardId: string;
@@ -79,6 +79,7 @@ export default function AddBillForm({
       billNumber: formData.get("billNumber") as string,
       customerFee: formData.get("customerFee") as string,
       posFee: formData.get("posFee") as string,
+      posFeePerDay: formData.get("posFeePerDay") as string,
       backFee: formData.get("backFee") as string,
       note: formData.get("note") as string,
       cardId: cardId,
@@ -90,7 +91,6 @@ export default function AddBillForm({
      * */
     const validationResult = addBillSchema.safeParse(checkData);
     if (!validationResult.success) {
-      console.error("Validation failed", validationResult.error);
       setWasSubmitted(true);
       event.preventDefault();
       return;
@@ -101,6 +101,7 @@ export default function AddBillForm({
       billNumber: string;
       customerFee: number;
       posFee: number;
+      posFeePerDay: number;
       backFee: number;
       note?: string;
       cardId: string;
@@ -112,6 +113,7 @@ export default function AddBillForm({
       customerFee: Number(validationResult.data.customerFee),
       posFee: Number(validationResult.data.posFee),
       backFee: Number(validationResult.data.backFee),
+      posFeePerDay: Number(validationResult.data.posFeePerDay),
       note: validationResult.data.note || "",
       cardId: validationResult.data.cardId,
       posTerminalId: validationResult.data.posTerminalId,
@@ -205,6 +207,22 @@ export default function AddBillForm({
               placeholder="Nhập phí POS"
               wasSubmitted={wasSubmitted}
               fieldSchema={addBillSchema.shape["posFee"]}
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col items-start justify-between gap-2">
+          <Label className="" htmlFor="posFeePerDay">
+            Phí POS theo ngày (%):
+          </Label>
+          <div className="relative w-full">
+            <ValidatedInput
+              className="pr-10"
+              name="posFeePerDay"
+              type="float"
+              placeholder="Nhập phí POS theo ngày"
+              wasSubmitted={wasSubmitted}
+              fieldSchema={addBillSchema.shape["posFeePerDay"]}
             />
           </div>
         </div>

@@ -15,7 +15,7 @@ import {
 import { useUser } from "@/hooks/use-user";
 import useAxios from "@/lib/axios/axios.config";
 import { createAgentMemberSchema } from "@/lib/validation/create-agent-member-schema";
-import { IconInnerShadowBottomRight, IconUserPlus } from "@tabler/icons-react";
+import { IconInnerShadowBottomRight } from "@tabler/icons-react";
 import { useMutation } from "@tanstack/react-query";
 import React, { useRef, useState } from "react";
 import { toast } from "sonner";
@@ -49,7 +49,7 @@ export default function Page() {
       );
       return response.data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       setWasSubmitted(false);
       if (formRef.current) {
         formRef.current.reset();

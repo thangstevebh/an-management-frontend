@@ -7,7 +7,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
-  CardAction,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -92,7 +91,7 @@ export function MonthlyStatistics({
   }, [totalMonthlyPayload]);
 
   return (
-    <div className="*:data-[slot=card]:from-primary/4 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-3">
+    <div className="overflow-x-hidden *:data-[slot=card]:from-primary/4 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card max-w-6xl grid grid-cols-1 gap-2 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @4xl/main:grid-cols-4">
       {details &&
         details.length > 0 &&
         details.map((detail) => (
@@ -103,7 +102,7 @@ export function MonthlyStatistics({
               </CardDescription>
               <CardTitle
                 className={cn(
-                  "text-xl font-semibold tabular-nums @[250px]/card:text-3xl",
+                  "text-lg font-semibold tabular-nums @[200px]/card:text-2xl",
                   detail.id === 1 && "text-green-500",
                 )}
               >
@@ -111,7 +110,7 @@ export function MonthlyStatistics({
                 {detail.value}
               </CardTitle>
             </CardHeader>
-            <CardFooter className="flex-col items-start gap-1">
+            <CardFooter className="flex-col justify-start gap-1">
               <div className="text-muted-foreground">
                 <Badge
                   variant={detail?.badgeVariant || "outline"}

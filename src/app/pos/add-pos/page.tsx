@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ButtonBack } from "@/components/ui/button-back";
 import { ValidatedInput } from "@/components/ui/input-validate";
 import { Label } from "@/components/ui/label";
-import { IconInnerShadowBottomRight, IconUserPlus } from "@tabler/icons-react";
+import { IconInnerShadowBottomRight } from "@tabler/icons-react";
 import { useMutation } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { toast } from "sonner";

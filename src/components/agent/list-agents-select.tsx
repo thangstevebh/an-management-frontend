@@ -16,7 +16,7 @@ import useAxios from "@/lib/axios/axios.config";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PosData } from "../pos/pos-by-id";
 import { IAgent } from "./agent-detail";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 
 export default function ListAgentsSelect({ posData }: { posData: PosData }) {
   const { user, isAdmin } = useUser();

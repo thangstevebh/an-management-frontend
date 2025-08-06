@@ -16,7 +16,7 @@ export default function CreditCard({
   colloborator?: string;
 }) {
   return (
-    <div className="relative m-auto h-48 w-80 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-xl transition-transform sm:h-56 sm:w-96 sm:hover:scale-110">
+    <div className="relative m-auto h-48 w-80 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white text-shadow-md shadow-xl transition-transform sm:h-56 sm:w-96 sm:hover:scale-110">
       <div className="absolute top-4 w-full px-8 sm:top-8">
         <div className="flex justify-between">
           <div className="">

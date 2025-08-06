@@ -12,7 +12,6 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -22,7 +21,7 @@ import { fullIso8601Regex, ICommonResponse } from "@/lib/constant";
 import { cn, convertDecimal128ToString } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback } from "react";
 import { toast } from "sonner";
 import LoadingThreeDot from "../ui/loading-three-dot";
 import { Textarea } from "../ui/textarea";
@@ -382,13 +381,13 @@ export default function PosById({}) {
 
       <div className="flex max-w-[80%] mx-auto w-full gap-4 bg-white p-6 rounded-lg shadow-sm border">
         <div className="flex-1">
-          {renderEditableField("name", "Name", "input")}
-          {renderEditableField("posType", "POS Type", "select", false, [
+          {renderEditableField("name", "Tên máy", "input")}
+          {renderEditableField("posType", "Loại", "select", false, [
             ...Object.values(PosTerminalType),
           ])}
           {renderEditableField(
             "status",
-            "Status",
+            "Trạng thái",
             "select",
             user?.isAdmin ? false : true,
             [
@@ -400,24 +399,20 @@ export default function PosById({}) {
           )}
           {renderEditableField(
             "sendAt",
-            "Send At",
+            "Ngày gửi đi",
             "date",
             user?.isAdmin ? false : true,
           )}
-          {renderEditableField("receivedAt", "Received At", "date")}
-          {renderEditableField("sendBackAt", "Send Back At", "date")}
+          {renderEditableField("receivedAt", "Ngày nhận", "date")}
+          {renderEditableField("sendBackAt", "Ngày gửi trả", "date")}
           {renderEditableField("note", "Note", "textarea")}
         </div>
         <div className="flex-1">
-          {renderEditableField("feePerDay", "Fee Per Day", "input")}
-          {renderEditableField("feePerTerminal", "Fee Per Terminal", "input")}
-          {renderEditableField(
-            "feePercentNormal",
-            "Fee Percent Normal",
-            "input",
-          )}
-          {renderEditableField("feePercentMB", "Fee Percent MB", "input")}
-          {renderEditableField("feeBack", "Fee Back", "input")}
+          {renderEditableField("feePerDay", "Phí theo ngày(%)", "input")}
+          {renderEditableField("feePerTerminal", "Phí theo máy(%)", "input")}
+          {renderEditableField("feeBack", "Phí hoàn(%)", "input")}
+          {renderEditableField("feePercentNormal", "Phí thường(%)", "input")}
+          {renderEditableField("feePercentMB", "Phí MB(%)", "input")}
         </div>
       </div>
     </div>

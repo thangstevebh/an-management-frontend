@@ -168,6 +168,37 @@ export default function Page() {
                   Vui lòng chọn thẻ để thêm hoá đơn.
                 </p>
               )}
+
+              {cardId && (
+                <div className="flex flex-col bg-gray-100 p-2 rounded-md mt-2 w-80 text-start">
+                  <p>
+                    Phí mặc định:{" "}
+                    <span className="text-blue-500 font-semibold">
+                      {(() => {
+                        const selectedCard = listCards.find(
+                          (card) => card._id === cardId,
+                        );
+
+                        return selectedCard?.defaultFeePercent;
+                      })()}
+                      %
+                    </span>
+                  </p>
+                  <p>
+                    Phí hoàn:{" "}
+                    <span className="text-blue-500 font-semibold">
+                      {(() => {
+                        const selectedCard = listCards.find(
+                          (card) => card._id === cardId,
+                        );
+
+                        return selectedCard?.feeBack;
+                      })()}
+                      %
+                    </span>
+                  </p>
+                </div>
+              )}
             </div>
           )}
           <div className="flex flex-col gap-2 justify-center items-center w-full p-4">
@@ -206,6 +237,71 @@ export default function Page() {
               <p className="text-sm text-red-500 mt-1">
                 Vui lòng chọn máy POS để thêm hoá đơn.
               </p>
+            )}
+
+            {posTerminalId && (
+              <div className="flex flex-col bg-gray-100 p-2 rounded-md mt-2 w-80 text-start">
+                <p>
+                  Phí theo máy:{" "}
+                  <span className="text-blue-500 font-semibold">
+                    {(() => {
+                      const selectedPos = posTerminalsData.find(
+                        (pos: PosData) => pos._id === posTerminalId,
+                      );
+                      return selectedPos?.feePerTerminal;
+                    })()}
+                    %
+                  </span>
+                </p>
+                <p>
+                  Phí theo ngày:{" "}
+                  <span className="text-blue-500 font-semibold">
+                    {(() => {
+                      const selectedPos = posTerminalsData.find(
+                        (pos: PosData) => pos._id === posTerminalId,
+                      );
+                      return selectedPos?.feePerDay;
+                    })()}
+                    %
+                  </span>
+                </p>
+                <p>
+                  Phí hoàn:{" "}
+                  <span className="text-blue-500 font-semibold">
+                    {(() => {
+                      const selectedPos = posTerminalsData.find(
+                        (pos: PosData) => pos._id === posTerminalId,
+                      );
+                      return selectedPos?.feeBack;
+                    })()}
+                    %
+                  </span>
+                </p>
+                <p>
+                  Phí thường:{" "}
+                  <span className="text-blue-500 font-semibold">
+                    {(() => {
+                      const selectedPos = posTerminalsData.find(
+                        (pos: PosData) => pos._id === posTerminalId,
+                      );
+                      return selectedPos?.feePercentNormal;
+                    })()}
+                    %
+                  </span>
+                </p>
+                <p>
+                  Phí MB:{" "}
+                  <span className="text-blue-500 font-semibold">
+                    {(() => {
+                      const selectedPos = posTerminalsData.find(
+                        (pos: PosData) => pos._id === posTerminalId,
+                      );
+                      return selectedPos?.feePercentMB;
+                    })()}
+                    %
+                  </span>
+                </p>
+              </div>
             )}
           </div>
         </div>

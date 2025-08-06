@@ -21,6 +21,7 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Textarea } from "../ui/textarea";
 import { useRouter } from "next/navigation";
+import { IconArrowBarBoth } from "@tabler/icons-react";
 
 interface CardDetailData {
   _id: string;
@@ -394,12 +395,12 @@ export default function RenderCardDetail({
   const router = useRouter();
 
   return (
-    <div className="flex flex-col gap-2 bg-white p-4 rounded-lg shadow-sm border flex-1">
+    <div className="flex flex-col gap-2 p-4 rounded-lg shadow-md border flex-1 w-full max-w-[500px] mx-auto">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold mb-1">Thông tin tiền trong thẻ</h2>
         <Button
           variant="secondary"
-          className="hidden  hover:cursor-pointer sm:flex hover:bg-gray-200"
+          className="hidden bg-gray-200 hover:cursor-pointer sm:flex hover:bg-gray-300 hover:text-gray-800 transition-colors duration-200 ease-in-out"
           onClick={() => router.push(`/card/${cardDetailData?.cardId}/history`)}
           disabled={
             createNewCardDetailStageMutation.isPending ||
@@ -419,6 +420,7 @@ export default function RenderCardDetail({
           !cardDetailData?.isCurrent
         }
       >
+        <IconArrowBarBoth />
         <span className="text-sm">Kết thúc giai đoạn thẻ</span>
       </Button>
 

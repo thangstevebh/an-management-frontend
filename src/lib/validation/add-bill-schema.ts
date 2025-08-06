@@ -73,6 +73,22 @@ export const addBillSchema = z.object({
     })
     .default(0),
 
+  posFeePerDay: z
+    .string()
+    .transform((val) => {
+      const num = parseFloat(val);
+      return isNaN(num) ? val : num;
+    })
+    .refine((val) => typeof val === "number", {
+      message: "Phí theo ngày phải là một số",
+    })
+    .refine((val) => Number(val) >= 0, {
+      message: "Phí theo ngày không được nhỏ hơn 0",
+    })
+    .refine((val) => Number(val) <= 100, {
+      message: "Phí theo ngày không được lớn hơn 100",
+    })
+    .default(0),
   backFee: z
     .string()
     .transform((val) => {

@@ -2,7 +2,7 @@ import React from "react";
 
 export default function PosTerminalUI() {
   return (
-    <div className="relative w-80 h-[500px] bg-gray-900 rounded-3xl shadow-lg overflow-hidden flex flex-col border-2 border-gray-800">
+    <div className="relative w-80 h-[500px] bg-gray-900 text-shadow-md rounded-3xl shadow-lg overflow-hidden flex flex-col border-2 border-gray-800">
       <div className="bg-gray-800 h-20 flex flex-col justify-end items-center py-2 relative rounded-t-3xl">
         <div className="absolute top-0 left-0 bottom-0 w-2 bg-blue-500 rounded-bl-xl"></div>
         <div className="absolute top-0 right-0 bottom-0 w-2 bg-blue-500 rounded-br-xl"></div>

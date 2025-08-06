@@ -57,7 +57,7 @@ export default function Page() {
       setPage(1);
       setCommands([]);
     }
-  }, [isAdmin]);
+  }, [isAdmin, user?.agentId]);
 
   const { data: getAgents, isLoading: getAgentsLoading } = useQuery({
     queryKey: ["list-agents"],
@@ -322,10 +322,21 @@ export default function Page() {
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={"all"}>ALL</SelectItem>
+                    <SelectItem value={"all"}>Tất cả</SelectItem>
                     {Object.values(CommandStatus).map((status) => (
                       <SelectItem key={status} value={status}>
-                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                        {(() => {
+                          if (status === CommandStatus.PENDING) {
+                            return "Đang chờ";
+                          } else if (status === CommandStatus.APPROVED) {
+                            return "Đã xác nhận";
+                          } else if (status === CommandStatus.REJECTED) {
+                            return "Đã từ chối";
+                          } else if (status === CommandStatus.CANCELLED) {
+                            return "Đã hủy";
+                          }
+                          return "Không xác định";
+                        })()}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -356,7 +367,7 @@ export default function Page() {
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={"remove"}>ALL</SelectItem>
+                      <SelectItem value={"remove"}>Tất cả</SelectItem>
                       {getAgents?.agents.map((agent: IAgent) => (
                         <SelectItem key={agent?._id} value={agent.name}>
                           {agent.name}
@@ -382,7 +393,7 @@ export default function Page() {
                     <div
                       key={command?._id}
                       className={cn(
-                        "flex flex-col gap-1 p-4 border rounded-lg hover:shadow-md transition-shadow duration-200",
+                        "flex flex-col gap-1 p-4 border rounded-lg hover:shadow-md transition-shadow duration-200 bg-accent",
                       )}
                     >
                       <div className="w-full grid grid-cols-2 gap-2">
@@ -397,7 +408,7 @@ export default function Page() {
                           )}
                         </p>
                         <p>
-                          Card:{" "}
+                          Thẻ:{" "}
                           <span className="font-semibold">
                             {typeof command.cardId !== "string"
                               ? `${command?.cardId?.name} - ${command?.cardId?.lastNumber} - ${command?.cardId?.bankCode}`
@@ -407,33 +418,51 @@ export default function Page() {
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <p className="">
-                          Code:{" "}
+                          Mã:{" "}
                           <span className="font-semibold">{command.code}</span>
                         </p>
                         <p>
-                          Created At:{" "}
+                          Tạo vào ngày:{" "}
                           <span className="font-semibold">
-                            {new Date(command.createdAt).toLocaleDateString(
-                              "vi-VN",
-                            )}
+                            {(() => {
+                              const date = new Date(command.createdAt);
+                              const day = date
+                                .getDate()
+                                .toString()
+                                .padStart(2, "0");
+                              const month = (date.getMonth() + 1)
+                                .toString()
+                                .padStart(2, "0");
+                              const year = date.getFullYear();
+                              return `${day}-${month}-${year}`;
+                            })()}
                           </span>
                         </p>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <p>
-                          Status:{" "}
+                          Trạng thái:{" "}
                           <span className="uppercase font-semibold">
                             {command.status === CommandStatus.PENDING ? (
-                              <span className="text-yellow-500">
-                                {command.status}
-                              </span>
+                              <span className="text-yellow-500">Đang chờ</span>
                             ) : command.status === CommandStatus.APPROVED ? (
                               <span className="text-green-500">
-                                {command.status}
+                                Đã xác nhận
                               </span>
                             ) : (
                               <span className="text-red-500">
-                                {command.status}
+                                {(() => {
+                                  if (
+                                    command.status === CommandStatus.REJECTED
+                                  ) {
+                                    return "Đã từ chối";
+                                  } else if (
+                                    command.status === CommandStatus.CANCELLED
+                                  ) {
+                                    return "Đã hủy";
+                                  }
+                                  return "Không xác định";
+                                })()}
                               </span>
                             )}
                           </span>
@@ -462,7 +491,7 @@ export default function Page() {
                         </p>
                       </div>
                       <p>
-                        Amount:{" "}
+                        Số tiền:{" "}
                         <span className="font-semibold text-green-500">
                           {"+" +
                             String(command.incommingAmount).replace(
@@ -492,7 +521,7 @@ export default function Page() {
                                 }}
                                 className="bg-red-500 hover:bg-red-600 text-white"
                               >
-                                Reject
+                                Từ chối
                               </Button>
                               <Button
                                 onClick={() => {
@@ -509,7 +538,7 @@ export default function Page() {
                                 }}
                                 className="bg-green-500 hover:bg-green-600 text-white"
                               >
-                                Approve
+                                Xác nhận
                               </Button>
                             </div>
                           </div>
@@ -540,10 +569,21 @@ export default function Page() {
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={"all"}>ALL</SelectItem>
+                    <SelectItem value={"all"}>Tất cả</SelectItem>
                     {Object.values(CommandStatus).map((status) => (
                       <SelectItem key={status} value={status}>
-                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                        {(() => {
+                          if (status === CommandStatus.PENDING) {
+                            return "Đang chờ";
+                          } else if (status === CommandStatus.APPROVED) {
+                            return "Đã xác nhận";
+                          } else if (status === CommandStatus.REJECTED) {
+                            return "Đã từ chối";
+                          } else if (status === CommandStatus.CANCELLED) {
+                            return "Đã hủy";
+                          }
+                          return "Không xác định";
+                        })()}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -573,7 +613,7 @@ export default function Page() {
                       <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={"remove"}>ALL</SelectItem>
+                      <SelectItem value={"remove"}>Tất cả</SelectItem>
                       {getAgents?.agents.map((agent: IAgent) => (
                         <SelectItem key={agent?._id} value={agent.name}>
                           {agent.name}
@@ -598,7 +638,7 @@ export default function Page() {
                     <div
                       key={command?._id}
                       className={cn(
-                        "flex flex-col gap-1 p-4 border rounded-lg hover:shadow-md transition-shadow duration-200",
+                        "flex flex-col gap-1 p-4 border rounded-lg hover:shadow-md transition-shadow duration-200 bg-accent",
                       )}
                     >
                       <div className="w-full grid grid-cols-2 gap-2">
@@ -613,7 +653,7 @@ export default function Page() {
                           )}
                         </p>
                         <p>
-                          Card:{" "}
+                          Thẻ:{" "}
                           <span className="font-semibold">
                             {typeof command.cardId !== "string"
                               ? `${command?.cardId?.name} - ${command?.cardId?.lastNumber} - ${command?.cardId?.bankCode}`
@@ -623,33 +663,51 @@ export default function Page() {
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <p className="">
-                          Code:{" "}
+                          Mã:{" "}
                           <span className="font-semibold">{command.code}</span>
                         </p>
                         <p>
-                          Created At:{" "}
+                          Tạo vào ngày:{" "}
                           <span className="font-semibold">
-                            {new Date(command.createdAt).toLocaleDateString(
-                              "vi-VN",
-                            )}
+                            {(() => {
+                              const date = new Date(command.createdAt);
+                              const day = date
+                                .getDate()
+                                .toString()
+                                .padStart(2, "0");
+                              const month = (date.getMonth() + 1)
+                                .toString()
+                                .padStart(2, "0");
+                              const year = date.getFullYear();
+                              return `${day}-${month}-${year}`;
+                            })()}
                           </span>
                         </p>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <p>
-                          Status:{" "}
+                          Trạng thái:{" "}
                           <span className="uppercase font-semibold">
                             {command.status === CommandStatus.PENDING ? (
-                              <span className="text-yellow-500">
-                                {command.status}
-                              </span>
+                              <span className="text-yellow-500">Đang chờ</span>
                             ) : command.status === CommandStatus.APPROVED ? (
                               <span className="text-green-500">
-                                {command.status}
+                                Đã xác nhận
                               </span>
                             ) : (
                               <span className="text-red-500">
-                                {command.status}
+                                {(() => {
+                                  if (
+                                    command.status === CommandStatus.REJECTED
+                                  ) {
+                                    return "Đã từ chối";
+                                  } else if (
+                                    command.status === CommandStatus.CANCELLED
+                                  ) {
+                                    return "Đã hủy";
+                                  }
+                                  return "Không xác định";
+                                })()}
                               </span>
                             )}
                           </span>
@@ -678,7 +736,7 @@ export default function Page() {
                         </p>
                       </div>
                       <p>
-                        Amount:{" "}
+                        Số tiền:{" "}
                         <span className="font-semibold text-red-500">
                           {"-" +
                             String(command?.withdrawRequestedAmount).replace(
@@ -708,7 +766,7 @@ export default function Page() {
                                 }}
                                 className="bg-red-500 hover:bg-red-600 text-white"
                               >
-                                Reject
+                                Từ chối
                               </Button>
                               <Button
                                 onClick={() => {
@@ -725,7 +783,7 @@ export default function Page() {
                                 }}
                                 className="bg-green-500 hover:bg-green-600 text-white"
                               >
-                                Approve
+                                Xác nhận
                               </Button>
                             </div>
                           </div>
@@ -755,7 +813,7 @@ export default function Page() {
               !isHaveMore
             }
           >
-            Load More
+            Tải thêm
           </Button>
         )}
       </div>

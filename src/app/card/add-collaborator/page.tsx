@@ -14,7 +14,6 @@ import { toast } from "sonner";
 export default function Page() {
   const { user } = useUser();
   const [wasSubmitted, setWasSubmitted] = useState(false);
-  const [isNewCollaborator, setIsNewCollaborator] = useState(false);
   const [newCollaborator, setNewCollaborator] = useState("");
 
   const debouncedNewCollaborator = useDebounce(newCollaborator, 500);
@@ -66,7 +65,6 @@ export default function Page() {
       queryClient.invalidateQueries({ queryKey: ["get-collaborators"] });
       setWasSubmitted(true);
       setNewCollaborator("");
-      setIsNewCollaborator(false);
     },
     retry: 1,
     retryDelay: 1000,
