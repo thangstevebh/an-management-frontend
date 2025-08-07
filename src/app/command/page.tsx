@@ -519,7 +519,7 @@ export default function Page() {
                                         : command?.cardId,
                                   });
                                 }}
-                                className="bg-red-500 hover:bg-red-600 text-white"
+                                className="bg-red-600 hover:bg-red-700 text-white"
                               >
                                 Từ chối
                               </Button>
@@ -536,7 +536,7 @@ export default function Page() {
                                         : command?.cardId,
                                   });
                                 }}
-                                className="bg-green-500 hover:bg-green-600 text-white"
+                                className="bg-green-600 hover:bg-green-700 text-white"
                               >
                                 Xác nhận
                               </Button>
