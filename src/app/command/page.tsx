@@ -364,7 +364,7 @@ export default function Page() {
                     }}
                   >
                     <SelectTrigger className="w-48">
-                      <SelectValue placeholder="Status" />
+                      <SelectValue placeholder="Chọn đại lý" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value={"remove"}>Tất cả</SelectItem>
