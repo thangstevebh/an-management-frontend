@@ -91,7 +91,7 @@ export function DailyStatistics({
   }, [totalTodayPayload]);
 
   return (
-    <div className="overflow-x-hidden *:data-[slot=card]:from-primary/4 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card max-w-6xl grid grid-cols-1 gap-2 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @4xl/main:grid-cols-4">
+    <div className="overflow-x-hidden *:data-[slot=card]:from-primary/4 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card max-w-6xl grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @4xl/main:grid-cols-4">
       {details &&
         details.length > 0 &&
         details.map((detail) => (
