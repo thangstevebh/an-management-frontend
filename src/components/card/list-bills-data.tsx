@@ -55,6 +55,11 @@ import {
   SelectValue,
 } from "../ui/select";
 import { useListCardsQueryUserOptions } from "@/lib/queryOptions/get-list-cards-option";
+import { DateRange } from "react-day-picker";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { IconCalendarWeek } from "@tabler/icons-react";
+import { Calendar } from "../ui/calendar";
+import { vi } from "date-fns/locale";
 
 interface IPosTerminal {
   _id: string;
@@ -140,6 +145,20 @@ export function ListBillsData() {
   const debouncedSearch = useDebounce(searchInput, 500); // Debounced search value (500ms delay)
   const [posTerminalId, setPosTerminalId] = React.useState<string | null>(null);
   const [cardId, setCardId] = React.useState<string | null>(null);
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+    from: undefined,
+    to: undefined,
+  });
+  const [open, setOpen] = React.useState(false);
+
+  const handleSetToToday = () => {
+    const today = new Date();
+
+    setDateRange((prevDateRange) => ({
+      to: undefined,
+      from: today,
+    }));
+  };
 
   const { data: listCard, isLoading: getListCardsLoading } =
     useListCardsQueryUserOptions(
@@ -211,6 +230,7 @@ export function ListBillsData() {
       sorting,
       posTerminalId,
       cardId,
+      dateRange,
     ],
     queryFn: async () => {
       const response = await useAxios.get(`card/get-bills`, {
@@ -226,6 +246,12 @@ export function ListBillsData() {
           search: debouncedSearch || undefined,
           ...(posTerminalId && { posTerminalId }),
           ...(cardId && { cardId }),
+          ...(dateRange?.from && {
+            startDate: dateRange.from.toISOString(),
+          }),
+          ...(dateRange?.to && {
+            endDate: dateRange.to.toISOString(),
+          }),
         },
         headers: {
           "x-agent": (user?.agentId || "") as string,
@@ -679,7 +705,7 @@ export function ListBillsData() {
         />
 
         <div className="flex gap-1">
-          <div className="flex flex-col gap-1 justify-center items-center">
+          <div className="flex-1 flex flex-col gap-1 justify-center items-center">
             <Select
               value={
                 listCards.find((card: ICard) => card._id === cardId)?.name || ""
@@ -777,6 +803,55 @@ export function ListBillsData() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      <div className="flex justify-start items-end gap-2 mb-4">
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              id="date"
+              className="w-64 justify-between font-normal"
+            >
+              {dateRange && dateRange.from
+                ? dateRange.from.toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                  }) +
+                  (dateRange.to
+                    ? " - " +
+                      dateRange.to.toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      })
+                    : "")
+                : "Chọn ngày"}
+
+              <IconCalendarWeek />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+            <Calendar
+              mode="range"
+              defaultMonth={dateRange?.from}
+              selected={dateRange}
+              onSelect={setDateRange}
+              className="rounded-lg border shadow-sm"
+              disabled={(date) => date < new Date("1900-01-01")}
+              locale={vi}
+            />
+          </PopoverContent>
+        </Popover>
+
+        <Button
+          onClick={handleSetToToday}
+          variant="outline"
+          className="w-full sm:w-auto"
+        >
+          Hôm nay
+        </Button>
+      </div>
+
       <div className="overflow-hidden rounded-md border">
         <Table className="">
           <TableHeader className="bg-gray-100 w-auto">
