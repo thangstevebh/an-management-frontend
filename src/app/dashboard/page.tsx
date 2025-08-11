@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { type DateRange } from "react-day-picker";
 import { Calendar } from "@/components/ui/calendar";
 import { vi } from "date-fns/locale";
@@ -20,15 +20,24 @@ import { dayjs } from "@/lib/utils";
 import CardSkeleton from "@/components/skeleton/card-dashboard";
 import { DailyStatisticsCard } from "@/components/dashboard/daily-statistics-card";
 import { MonthlyStatisticsCard } from "@/components/dashboard/monthly-statistics-card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { IAgent } from "@/components/agent/agent-detail";
 
 export default function Page() {
-  const { user } = useUser();
+  const { user, isAdmin } = useUser();
 
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: new Date(),
     to: undefined,
   });
   const [open, setOpen] = useState(false);
+  const [agent, setAgent] = useState<string | null>(null);
 
   const handleSetToToday = () => {
     const today = new Date();
@@ -40,7 +49,7 @@ export default function Page() {
   };
 
   const { data: getReportsData, isLoading: isGetReportsLoading } = useQuery({
-    queryKey: ["get-dashboard-reports", user?.id, dateRange],
+    queryKey: ["get-dashboard-reports", user?.id, dateRange, agent],
     queryFn: async (): Promise<ICommonResponse> => {
       try {
         const response = await useAxios.get<ICommonResponse<any>>(
@@ -61,9 +70,24 @@ export default function Page() {
                     .utc()
                     .toISOString()
                 : undefined,
+
+              ...(agent &&
+                !!isAdmin && {
+                  agentId:
+                    agents.find(
+                      (agentDetail: IAgent) => agentDetail.name === agent,
+                    )?._id || "",
+                }),
             },
             headers: {
-              "x-agent": (user?.agentId || "") as string,
+              ...((!!isAdmin && {
+                "x-agent":
+                  agents.find(
+                    (agentDetail: IAgent) => agentDetail.name === agent,
+                  )?._id || "",
+              }) || {
+                "x-agent": user?.agentId || "",
+              }),
             },
           },
         );
@@ -82,7 +106,7 @@ export default function Page() {
         throw error;
       }
     },
-    enabled: !!user?.agentId,
+    enabled: !isAdmin ? !!user?.agentId : true,
     staleTime: 5000,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
@@ -92,55 +116,122 @@ export default function Page() {
     return getReportsData?.data || [];
   }, [getReportsData]);
 
+  const { data: getAgents, isLoading: getAgentsLoading } = useQuery({
+    queryKey: ["list-agents"],
+    queryFn: async () => {
+      const response = await useAxios.get(`agent/list-agents`, {
+        params: {
+          page: 1,
+          limit: 100,
+        },
+        headers: {
+          "x-agent": (user?.agentId || "") as string,
+        },
+      });
+      if (response?.status !== 200 && response.data?.code !== 200) {
+        toast.error(
+          `Failed to fetch agents, ${response.data?.message || "Unknown error"}`,
+        );
+        return [];
+      }
+      return response.data.data;
+    },
+    enabled: !!isAdmin,
+    staleTime: 5000,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+  });
+
+  const agents = useMemo(() => {
+    return getAgents?.agents || [];
+  }, [getAgents]);
+
   return (
     <div className="flex flex-col gap-1 mx-auto max-w-7xl">
-      <div className="flex justify-end items-end gap-2 mr-12">
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              id="date"
-              className="w-64 justify-between font-normal"
+      <div className="flex items-center justify-end gap-2 p-4">
+        {!getAgentsLoading && isAdmin && (
+          <Select
+            value={
+              agents?.length > 0
+                ? agents.find((agentItem: IAgent) => agentItem?.name === agent)
+                    ?.name
+                : ""
+            }
+            onValueChange={(value: string) => {
+              if (value === "all") {
+                // setPage(1);
+                setAgent(null);
+              } else {
+                // setPage(1);
+                setAgent(value);
+              }
+            }}
+          >
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Chọn đại lý" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={"all"}>Tất cả</SelectItem>
+              {getAgents?.agents.map((agent: IAgent) => (
+                <SelectItem key={agent?._id} value={agent.name}>
+                  {agent.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
+        <div className="flex justify-end items-end gap-2 mr-12">
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                id="date"
+                className="w-64 justify-between font-normal"
+              >
+                {dateRange && dateRange.from
+                  ? dateRange.from.toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    }) +
+                    (dateRange.to
+                      ? " - " +
+                        dateRange.to.toLocaleDateString("en-GB", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        })
+                      : "")
+                  : "Chọn ngày"}
+
+                <IconCalendarWeek />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent
+              className="w-auto overflow-hidden p-0"
+              align="start"
             >
-              {dateRange && dateRange.from
-                ? dateRange.from.toLocaleDateString("en-GB", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  }) +
-                  (dateRange.to
-                    ? " - " +
-                      dateRange.to.toLocaleDateString("en-GB", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      })
-                    : "")
-                : "Chọn ngày"}
+              <Calendar
+                mode="range"
+                defaultMonth={dateRange?.from}
+                selected={dateRange}
+                onSelect={setDateRange}
+                className="rounded-lg border shadow-sm"
+                disabled={(date) => date < new Date("1900-01-01")}
+                locale={vi}
+              />
+            </PopoverContent>
+          </Popover>
 
-              <IconCalendarWeek />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-            <Calendar
-              mode="range"
-              defaultMonth={dateRange?.from}
-              selected={dateRange}
-              onSelect={setDateRange}
-              className="rounded-lg border shadow-sm"
-              disabled={(date) => date < new Date("1900-01-01")}
-              locale={vi}
-            />
-          </PopoverContent>
-        </Popover>
-
-        <Button
-          onClick={handleSetToToday}
-          variant="outline"
-          className="w-full sm:w-auto"
-        >
-          Hôm nay
-        </Button>
+          <Button
+            onClick={handleSetToToday}
+            variant="outline"
+            className="w-full sm:w-auto"
+          >
+            Hôm nay
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-col gap-2">

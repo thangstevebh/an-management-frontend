@@ -60,6 +60,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { IconCalendarWeek } from "@tabler/icons-react";
 import { Calendar } from "../ui/calendar";
 import { vi } from "date-fns/locale";
+import { IAgent } from "../agent/agent-detail";
 
 interface IPosTerminal {
   _id: string;
@@ -128,7 +129,7 @@ export interface IBill {
 }
 
 export function ListBillsData() {
-  const { user } = useUser();
+  const { user, isAdmin } = useUser();
 
   const [pagination, setPagination] = React.useState({
     pageIndex: 0, // TanStack Table uses 0-based pageIndex
@@ -150,6 +151,7 @@ export function ListBillsData() {
     to: undefined,
   });
   const [open, setOpen] = React.useState(false);
+  const [agent, setAgent] = React.useState<string | null>(null);
 
   const handleSetToToday = () => {
     const today = new Date();
@@ -231,6 +233,7 @@ export function ListBillsData() {
       posTerminalId,
       cardId,
       dateRange,
+      agent,
     ],
     queryFn: async () => {
       const response = await useAxios.get(`card/get-bills`, {
@@ -252,9 +255,21 @@ export function ListBillsData() {
           ...(dateRange?.to && {
             endDate: dateRange.to.toISOString(),
           }),
+          ...(agent &&
+            !!isAdmin && {
+              agentId:
+                agents.find((agentDetail: IAgent) => agentDetail.name === agent)
+                  ?._id || "",
+            }),
         },
         headers: {
-          "x-agent": (user?.agentId || "") as string,
+          ...((!!isAdmin && {
+            "x-agent":
+              agents.find((agentDetail: IAgent) => agentDetail.name === agent)
+                ?._id || "",
+          }) || {
+            "x-agent": user?.agentId || "",
+          }),
         },
       });
       if (response?.status !== 200 && response.data?.code !== 200) {
@@ -265,7 +280,7 @@ export function ListBillsData() {
       }
       return response.data;
     },
-    enabled: user?.role !== "admin" ? !!user?.agentId : true,
+    enabled: !isAdmin ? !!user?.agentId : true,
     staleTime: 5000, // Cache data for 5 seconds
   });
 
@@ -290,6 +305,36 @@ export function ListBillsData() {
     setSearchInput(event.target.value);
     setPagination((prev) => ({ ...prev, pageIndex: 0 }));
   };
+
+  const { data: getAgents, isLoading: getAgentsLoading } = useQuery({
+    queryKey: ["list-agents"],
+    queryFn: async () => {
+      const response = await useAxios.get(`agent/list-agents`, {
+        params: {
+          page: 1,
+          limit: 100,
+        },
+        headers: {
+          "x-agent": (user?.agentId || "") as string,
+        },
+      });
+      if (response?.status !== 200 && response.data?.code !== 200) {
+        toast.error(
+          `Failed to fetch agents, ${response.data?.message || "Unknown error"}`,
+        );
+        return [];
+      }
+      return response.data.data;
+    },
+    enabled: !!isAdmin,
+    staleTime: 5000,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+  });
+
+  const agents = React.useMemo(() => {
+    return getAgents?.agents || [];
+  }, [getAgents]);
 
   const columns: ColumnDef<IBill>[] = [
     {
@@ -803,53 +848,89 @@ export function ListBillsData() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className="flex justify-start items-end gap-2 mb-4">
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              id="date"
-              className="w-64 justify-between font-normal"
+      <div className="flex justify-start items-center gap-2 mb-4">
+        {!getAgentsLoading && isAdmin && (
+          <Select
+            value={
+              agents?.length > 0
+                ? agents.find((agentItem: IAgent) => agentItem?.name === agent)
+                    ?.name
+                : ""
+            }
+            onValueChange={(value: string) => {
+              if (value === "all") {
+                // setPage(1);
+                setAgent(null);
+              } else {
+                // setPage(1);
+                setAgent(value);
+              }
+            }}
+          >
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Chọn đại lý" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={"all"}>Tất cả</SelectItem>
+              {getAgents?.agents.map((agent: IAgent) => (
+                <SelectItem key={agent?._id} value={agent.name}>
+                  {agent.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        <div className="flex justify-start items-end gap-2">
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                id="date"
+                className="w-64 justify-between font-normal"
+              >
+                {dateRange && dateRange.from
+                  ? dateRange.from.toLocaleDateString("en-GB", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    }) +
+                    (dateRange.to
+                      ? " - " +
+                        dateRange.to.toLocaleDateString("en-GB", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                        })
+                      : "")
+                  : "Chọn ngày"}
+
+                <IconCalendarWeek />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent
+              className="w-auto overflow-hidden p-0"
+              align="start"
             >
-              {dateRange && dateRange.from
-                ? dateRange.from.toLocaleDateString("en-GB", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  }) +
-                  (dateRange.to
-                    ? " - " +
-                      dateRange.to.toLocaleDateString("en-GB", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      })
-                    : "")
-                : "Chọn ngày"}
+              <Calendar
+                mode="range"
+                defaultMonth={dateRange?.from}
+                selected={dateRange}
+                onSelect={setDateRange}
+                className="rounded-lg border shadow-sm"
+                disabled={(date) => date < new Date("1900-01-01")}
+                locale={vi}
+              />
+            </PopoverContent>
+          </Popover>
 
-              <IconCalendarWeek />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-            <Calendar
-              mode="range"
-              defaultMonth={dateRange?.from}
-              selected={dateRange}
-              onSelect={setDateRange}
-              className="rounded-lg border shadow-sm"
-              disabled={(date) => date < new Date("1900-01-01")}
-              locale={vi}
-            />
-          </PopoverContent>
-        </Popover>
-
-        <Button
-          onClick={handleSetToToday}
-          variant="outline"
-          className="w-full sm:w-auto"
-        >
-          Hôm nay
-        </Button>
+          <Button
+            onClick={handleSetToToday}
+            variant="outline"
+            className="w-full sm:w-auto"
+          >
+            Hôm nay
+          </Button>
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-md border">

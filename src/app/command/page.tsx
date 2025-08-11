@@ -367,7 +367,7 @@ export default function Page() {
                       <SelectValue placeholder="Chọn đại lý" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={"remove"}>Tất cả</SelectItem>
+                      <SelectItem value={"all"}>Tất cả</SelectItem>
                       {getAgents?.agents.map((agent: IAgent) => (
                         <SelectItem key={agent?._id} value={agent.name}>
                           {agent.name}
